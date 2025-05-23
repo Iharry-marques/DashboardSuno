@@ -135,6 +135,12 @@
   border-bottom: 1px solid #eee;
 }
 
+.timeline-container {
+  height: 100% !important;
+  min-height: 500px;
+  background-color: var(--card-bg);
+}
+
 /* ----- Elementos de Texto Gerais da Timeline ----- */
 .vis-time-axis .vis-text {
   font-size: 0.85rem;

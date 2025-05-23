@@ -93,7 +93,7 @@ function aplicarModo(modo) {
 
   if (modo === 'confortavel') {
     htmlElement.classList.add('modo-confortavel');
-    htmlElement.style.fontSize = '12px'; // Modo confortável
+    htmlElement.style.fontSize = '12px'; 
     localStorage.setItem('uiMode', 'confortavel');
     btnCompacto?.classList.remove('active');
     btnConfortavel?.classList.add('active');
@@ -101,7 +101,7 @@ function aplicarModo(modo) {
   } else {
     // Compacto é o padrão
     htmlElement.classList.remove('modo-confortavel');
-    htmlElement.style.fontSize = '9px'; // Modo compacto (padrão - ajustado)
+    htmlElement.style.fontSize = '7px'; // Modo compacto (padrão - ajustado)
     localStorage.setItem('uiMode', 'compacto');
     btnCompacto?.classList.add('active');
     btnConfortavel?.classList.remove('active');
