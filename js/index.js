@@ -101,7 +101,7 @@ function aplicarModo(modo) {
   } else {
     // Compacto é o padrão
     htmlElement.classList.remove('modo-confortavel');
-    htmlElement.style.fontSize = '10px'; // Modo compacto (padrão)
+    htmlElement.style.fontSize = '9px'; // Modo compacto (padrão - ajustado)
     localStorage.setItem('uiMode', 'compacto');
     btnCompacto?.classList.add('active');
     btnConfortavel?.classList.remove('active');
