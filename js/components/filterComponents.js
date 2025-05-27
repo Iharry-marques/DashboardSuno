@@ -23,7 +23,7 @@ export function preencherSelectClientes(dados, selectId = 'cliente-principal-sel
     "EUDORA",
     "GM",
     "JOHNSON'S BABY",
-    "O.U.I",
+    "O.U.i",
     "OVVI",
     "SUPERDIGITAL"
   ];
