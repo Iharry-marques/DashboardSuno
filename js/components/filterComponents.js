@@ -13,21 +13,34 @@ import { getEl } from './uiComponents.js';
  */
 export function preencherSelectClientes(dados, selectId = 'cliente-principal-select') {
   if (!dados || dados.length === 0) return;
-  
+
   // Suporta múltiplos IDs (cliente-select,cliente-principal-select)
   const ids = selectId.split(',').map(id => id.trim());
-  
-  // Extrair clientes únicos
-  const clientes = [...new Set(dados.map(item => item.client).filter(Boolean))].sort();
-  
+
+  // Lista de clientes a serem excluídos do filtro
+  const clientesExcluidos = [
+    "ENGIE",
+    "EUDORA",
+    "GM",
+    "JOHNSON'S BABY",
+    "O.U.I",
+    "OVVI",
+    "SUPERDIGITAL"
+  ];
+
+  // Extrair clientes únicos e filtrar os excluídos
+  const clientes = [...new Set(dados.map(item => item.client).filter(Boolean))]
+    .filter(cliente => !clientesExcluidos.includes(cliente))
+    .sort();
+
   // Preencher cada select encontrado
   ids.forEach(id => {
     const select = getEl(id);
     if (!select) return;
-    
+
     // Limpar e adicionar opção "Todos"
     select.innerHTML = '<option value="todos">Todos</option>';
-    
+
     // Adicionar clientes
     clientes.forEach(cliente => {
       select.add(new Option(cliente, cliente));
@@ -42,10 +55,10 @@ export function preencherSelectClientes(dados, selectId = 'cliente-principal-sel
  */
 export function preencherSelectGrupos(dados, selectId = 'grupo-select') {
   if (!dados || dados.length === 0) return;
-  
+
   // Suporta múltiplos IDs (grupo-select,grupo-principal-select)
   const ids = selectId.split(',').map(id => id.trim());
-  
+
   // Lista de grupos principais válidos
   const gruposPrincipais = [
     "Criação",
@@ -55,15 +68,15 @@ export function preencherSelectGrupos(dados, selectId = 'grupo-select') {
     "BI",
     "Estratégia",
   ];
-  
+
   // Preencher cada select encontrado
   ids.forEach(id => {
     const select = getEl(id);
     if (!select) return;
-    
+
     // Limpar e adicionar opção "Todos"
     select.innerHTML = '<option value="todos">Todos</option>';
-    
+
     // Adicionar apenas grupos que existem nos dados
     gruposPrincipais.forEach(grupo => {
       if (dados.some(item => item.TaskOwnerGroup === grupo)) {
@@ -173,7 +186,7 @@ export function preencherSelectSubgrupos(dados, grupoSelecionado, selectId = 'su
 export function configurarFiltroPeriodo(selectId = 'periodo-select', callback = null) {
   const periodoSelect = getEl(selectId);
   if (!periodoSelect) return;
-  
+
   // Limpar e adicionar opções padrão
   periodoSelect.innerHTML = `
     <option value="30" selected>30 dias</option>
@@ -181,7 +194,7 @@ export function configurarFiltroPeriodo(selectId = 'periodo-select', callback = 
     <option value="180">6 meses</option>
     <option value="365">1 ano</option>
   `;
-  
+
   // Adicionar evento de mudança
   if (callback && typeof callback === 'function') {
     periodoSelect.addEventListener('change', callback);
@@ -197,12 +210,12 @@ export function configurarFiltroPeriodo(selectId = 'periodo-select', callback = 
 export function configurarFiltroTipoTarefa(tarefasId = 'mostrar-tarefas', subtarefasId = 'mostrar-subtarefas', callback = null) {
   const tarefasCheckbox = getEl(tarefasId);
   const subtarefasCheckbox = getEl(subtarefasId);
-  
+
   if (tarefasCheckbox) {
     tarefasCheckbox.checked = true;
     if (callback) tarefasCheckbox.addEventListener('change', callback);
   }
-  
+
   if (subtarefasCheckbox) {
     subtarefasCheckbox.checked = true;
     if (callback) subtarefasCheckbox.addEventListener('change', callback);
@@ -221,20 +234,20 @@ export function obterValoresFiltros(config = {}) {
   const periodoSelectId = config.periodoSelectId || 'periodo-select';
   const mostrarTarefasId = config.mostrarTarefasId || 'mostrar-tarefas';
   const mostrarSubtarefasId = config.mostrarSubtarefasId || 'mostrar-subtarefas';
-  
+
   // Verificar ambos os possíveis IDs para cliente
   const clienteSelect = getEl(clienteSelectId) || getEl('cliente-select');
   const cliente = clienteSelect?.value || "todos";
-  
+
   // Verificar ambos os possíveis IDs para grupo
   const grupoSelect = getEl(grupoSelectId) || getEl('grupo-principal-select');
   const grupo = grupoSelect?.value || "todos";
-  
+
   const subgrupo = getEl(subgrupoSelectId)?.value || "todos";
   const dias = parseInt(getEl(periodoSelectId)?.value || "30");
   const mostrarTarefas = getEl(mostrarTarefasId)?.checked !== false;
   const mostrarSubtarefas = getEl(mostrarSubtarefasId)?.checked !== false;
-  
+
   return {
     cliente,
     grupo,
