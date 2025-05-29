@@ -13,8 +13,8 @@ export function getTimelineOptions() {
     orientation: "top",
     stack: true,
     margin: { item: 10 },
-    zoomMin: 1000 * 60 * 60 * 24 * 7,    // Mínimo de 7 dias
-    zoomMax: 1000 * 60 * 60 * 24 * 180,  // Máximo de 180 dias
+    zoomMin: 1000 * 60 * 60 * 24 * 7, // Mínimo de 7 dias
+    zoomMax: 1000 * 60 * 60 * 24 * 180, // Máximo de 180 dias
     start: moment().subtract(1, "weeks"),
     end: moment().add(2, "weeks"),
     groupOrder: (a, b) => a.content.localeCompare(b.content),
@@ -80,24 +80,38 @@ export function ajustarZoom(timeline, fator) {
  * @param {HTMLElement} timelineCard - Container da timeline que será expandido
  * @param {object} timeline - Instância da timeline para redimensionar
  */
-export function configurarEventoTelaCheia(btnFullscreen, timelineCard, timeline) {
+export function configurarEventoTelaCheia(
+  btnFullscreen,
+  timelineCard,
+  timeline
+) {
   if (!btnFullscreen || !timelineCard) return; // Timeline check removed as per strategy
 
   btnFullscreen.addEventListener("click", () => {
     if (!document.fullscreenElement) {
-      (timelineCard.requestFullscreen || timelineCard.webkitRequestFullscreen || timelineCard.msRequestFullscreen).call(timelineCard);
+      (
+        timelineCard.requestFullscreen ||
+        timelineCard.webkitRequestFullscreen ||
+        timelineCard.msRequestFullscreen
+      ).call(timelineCard);
     } else {
-      (document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen).call(document);
+      (
+        document.exitFullscreen ||
+        document.webkitExitFullscreen ||
+        document.msExitFullscreen
+      ).call(document);
     }
 
     setTimeout(() => {
-      document.getElementById("timeline").style.height = document.fullscreenElement ? `${window.innerHeight - 150}px` : "600px";
+      document.getElementById("timeline").style.height =
+        document.fullscreenElement ? `${window.innerHeight - 150}px` : "600px";
       timeline.redraw();
     }, 100);
   });
 
   document.addEventListener("fullscreenchange", () => {
-    document.getElementById("timeline").style.height = document.fullscreenElement ? `${window.innerHeight - 150}px` : "600px";
+    document.getElementById("timeline").style.height =
+      document.fullscreenElement ? `${window.innerHeight - 150}px` : "600px";
     timeline.redraw();
   });
 }
@@ -112,7 +126,8 @@ export function configurarEventoTelaCheia(btnFullscreen, timelineCard, timeline)
 export function criarTimelineTarefas(container, dados, config = {}) {
   if (!container || !dados || dados.length === 0) {
     if (container) {
-      container.innerHTML = '<div class="alert alert-info m-3">Nenhuma tarefa encontrada</div>';
+      container.innerHTML =
+        '<div class="alert alert-info m-3">Nenhuma tarefa encontrada</div>';
     }
     return null;
   }
@@ -140,18 +155,25 @@ export function criarTimelineTarefas(container, dados, config = {}) {
 
         // Conteúdo com base na duração da tarefa
         let content;
-        if (isShortDuration) {
-          // Tarefa curta - mostrar como bolinha
-          content = `<div class="timeline-dot ${taskClass} ${isSubtask ? "subtask" : ""}" data-type="curta" title="${item.name}"></div>`;
-        } else {
-          // Tarefa longa - mostrar como barra
-          content = `<div class="timeline-item-content ${isSubtask ? "subtask" : ""}" data-type="longa" title="${item.name}">
-                        <span class="priority-dot ${taskClass}"></span>
-                        ${titlePrefix}${item.name.substring(0, 25)}${
-            item.name.length > 25 ? "..." : ""
-          }
-                      </div>`;
-        }
+if (isShortDuration) {
+  content = `
+    <div class="timeline-dot timeline-task-icon ${taskClass} ${isSubtask ? "subtask" : ""}" 
+      data-type="curta" title="${item.name}">
+      <i class="fas fa-tasks"></i>
+    </div>
+  `;
+} else {
+  content = `
+    <div class="timeline-item-content ${isSubtask ? "subtask" : ""}" 
+      data-type="longa" title="${item.name}">
+      <span class="priority-dot ${taskClass}"></span>
+      <span class="task-label">
+        ${titlePrefix}${item.name ? item.name.substring(0, 25) : ""}
+        ${item.name && item.name.length > 25 ? "..." : ""}
+      </span>
+    </div>
+  `;
+}
 
         return {
           id: idx,
@@ -171,9 +193,11 @@ export function criarTimelineTarefas(container, dados, config = {}) {
             <p><strong>Grupo:</strong> ${item.TaskOwnerFullPath || "N/A"}</p>
             <p><strong>Tipo:</strong> ${item.tipo || "Tarefa"}</p>
           </div>`,
-          className: `${taskClass} ${isSubtask ? "subtask" : ""} ${isShortDuration ? "curta" : "longa"}`,
+          className: `${taskClass} ${isSubtask ? "subtask" : ""} ${
+            isShortDuration ? "curta" : "longa"
+          }`,
           isShortDuration: isShortDuration,
-          itemData: item
+          itemData: item,
         };
       })
     );
@@ -187,7 +211,7 @@ export function criarTimelineTarefas(container, dados, config = {}) {
 
     const options = {
       ...getTimelineOptions(),
-      ...config.timelineOptions
+      ...config.timelineOptions,
     };
 
     const timeline = new vis.Timeline(container, items, visGroups, options);
@@ -199,7 +223,7 @@ export function criarTimelineTarefas(container, dados, config = {}) {
     return {
       timeline,
       items,
-      groups: visGroups
+      groups: visGroups,
     };
   } catch (error) {
     console.error("Erro ao criar timeline:", error);
@@ -218,41 +242,47 @@ export function criarTimelineTarefas(container, dados, config = {}) {
 export function criarTimelineProjetos(container, projetos, config = {}) {
   if (!container || !projetos || projetos.length === 0) {
     if (container) {
-      container.innerHTML = '<div class="alert alert-info m-3">Nenhum projeto encontrado</div>';
+      container.innerHTML =
+        '<div class="alert alert-info m-3">Nenhum projeto encontrado</div>';
     }
     return null;
   }
 
   try {
     // Agrupar por cliente
-    const clientes = [...new Set(projetos.map(p => p.client).filter(Boolean))].sort();
+    const clientes = [
+      ...new Set(projetos.map((p) => p.client).filter(Boolean)),
+    ].sort();
 
     // Criação dos itens da timeline - projetos mostram EQUIPE e RESPONSÁVEL
     const items = new vis.DataSet(
       projetos.map((projeto, idx) => {
         const startDate = moment(projeto.start);
-        const endDate = projeto.end 
-          ? moment(projeto.end) 
+        const endDate = projeto.end
+          ? moment(projeto.end)
           : startDate.clone().add(14, "days");
-        
+
         // Status color class
         let statusClass = "";
-        switch(projeto.status) {
-          case "Concluído": 
-            statusClass = "status-concluido"; break;
-          case "Atrasado": 
-            statusClass = "status-atrasado"; break;
-          default: 
+        switch (projeto.status) {
+          case "Concluído":
+            statusClass = "status-concluido";
+            break;
+          case "Atrasado":
+            statusClass = "status-atrasado";
+            break;
+          default:
             statusClass = "status-andamento";
         }
-        
-        // Priority class 
+
+        // Priority class
         const priorityClass = config.priorityClasses?.[projeto.priority] || "";
-        
+
         // Exibir equipe e responsável no conteúdo
         const equipe = projeto.groups.join(" / ") || "Sem equipe";
-        const responsavel = projeto.responsibles.join(", ") || "Sem responsável";
-        
+        const responsavel =
+          projeto.responsibles.join(", ") || "Sem responsável";
+
         const content = `<div class="timeline-item-content ${priorityClass} ${statusClass}" title="${projeto.name}">
                            <span class="priority-dot ${priorityClass}"></span>
                            <strong>${equipe}</strong> - ${responsavel}
@@ -265,33 +295,39 @@ export function criarTimelineProjetos(container, projetos, config = {}) {
             <div class="timeline-tooltip">
               <h5>${projeto.name}</h5>
               <p><strong>Cliente:</strong> ${projeto.client || "N/A"}</p>
-              <p><strong>Time:</strong> ${projeto.groups.join(" / ") || "N/A"}</p>
-              <p><strong>Período:</strong> ${startDate.format("DD/MM/YYYY")} - ${endDate.format("DD/MM/YYYY")}</p>
-              <p><strong>Status:</strong> <span class="${statusClass}">${projeto.status}</span></p>
+              <p><strong>Time:</strong> ${
+                projeto.groups.join(" / ") || "N/A"
+              }</p>
+              <p><strong>Período:</strong> ${startDate.format(
+                "DD/MM/YYYY"
+              )} - ${endDate.format("DD/MM/YYYY")}</p>
+              <p><strong>Status:</strong> <span class="${statusClass}">${
+            projeto.status
+          }</span></p>
               <p><strong>Progresso:</strong> ${projeto.progress}%</p>
             </div>`,
           start: startDate.toDate(),
           end: endDate.toDate(),
           group: projeto.client,
           className: `${priorityClass} ${statusClass}`,
-          projeto
+          projeto,
         };
       })
     );
 
     // Clientes em negrito
     const visGroups = new vis.DataSet(
-      clientes.map(cliente => ({
+      clientes.map((cliente) => ({
         id: cliente,
         content: `<strong>${cliente}</strong>`,
-        className: config.clientColors?.[cliente.toUpperCase()] || ""
+        className: config.clientColors?.[cliente.toUpperCase()] || "",
       }))
     );
 
     // Definir opções
     const options = {
       ...getTimelineOptions(),
-      ...config.timelineOptions
+      ...config.timelineOptions,
     };
 
     const timeline = new vis.Timeline(container, items, visGroups, options);
@@ -303,7 +339,7 @@ export function criarTimelineProjetos(container, projetos, config = {}) {
     return {
       timeline,
       items,
-      groups: visGroups
+      groups: visGroups,
     };
   } catch (error) {
     console.error("Erro ao criar timeline:", error);
@@ -318,15 +354,14 @@ export function criarTimelineProjetos(container, projetos, config = {}) {
  * @param {Object} items - Dataset de itens da timeline
  */
 function configurarEventosTimeline(timeline, items) {
-  // EVENTO NATIVO de clique da timeline para tarefas curtas e longas
-  timeline.on("click", function(properties) {
+  timeline.on("click", function (properties) {
     if (!properties.item) return;
-    
+
     const id = properties.item;
     const item = items.get(id);
-    
+
     if (!item) return;
-    
+
     // Se for uma tarefa curta, mostrar o modal
     if (item.isShortDuration) {
       const tarefaData = item.itemData;
@@ -334,18 +369,26 @@ function configurarEventosTimeline(timeline, items) {
         <div style="padding: 1rem">
           <h4>${tarefaData.name}</h4>
           <p><strong>Cliente:</strong> ${tarefaData.client || "N/A"}</p>
-          <p><strong>Responsável:</strong> ${tarefaData.responsible || "N/A"}</p>
-          <p><strong>Status:</strong> ${tarefaData.PipelineStepTitle || "N/A"}</p>
+          <p><strong>Responsável:</strong> ${
+            tarefaData.responsible || "N/A"
+          }</p>
+          <p><strong>Status:</strong> ${
+            tarefaData.PipelineStepTitle || "N/A"
+          }</p>
           <p><strong>Prioridade:</strong> ${tarefaData.Priority || "N/A"}</p>
           <p><strong>Tipo:</strong> ${tarefaData.tipo || "Tarefa"}</p>
-          <p><strong>Período:</strong> ${moment(tarefaData.start).format("DD/MM/YYYY")} - ${moment(tarefaData.end).format("DD/MM/YYYY")}</p>
-          <p><strong>Grupo:</strong> ${tarefaData.TaskOwnerFullPath || "N/A"}</p>
+          <p><strong>Período:</strong> ${moment(tarefaData.start).format(
+            "DD/MM/YYYY"
+          )} - ${moment(tarefaData.end).format("DD/MM/YYYY")}</p>
+          <p><strong>Grupo:</strong> ${
+            tarefaData.TaskOwnerFullPath || "N/A"
+          }</p>
         </div>`;
 
-      const modal = document.createElement('div');
-      modal.className = 'modal fade show';
-      modal.style.display = 'block';
-      modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+      const modal = document.createElement("div");
+      modal.className = "modal fade show";
+      modal.style.display = "block";
+      modal.style.backgroundColor = "rgba(0,0,0,0.5)";
       modal.innerHTML = `
         <div class="modal-dialog">
           <div class="modal-content">
@@ -362,20 +405,22 @@ function configurarEventosTimeline(timeline, items) {
       document.body.appendChild(modal);
     } else {
       // Se for uma tarefa longa, trocar a classe 'expanded'
-      const element = document.querySelector(`.vis-item[data-id="${id}"]`);
+      const elements = document.querySelectorAll('.vis-item');
+      const element = Array.from(elements)[id];
+
       if (!element) return;
-      
-      if (element.classList.contains('expanded')) {
-        element.classList.remove('expanded');
+
+      if (element.classList.contains("expanded")) {
+        element.classList.remove("expanded");
       } else {
         // Remove expanded class from all other elements first
-        document.querySelectorAll('.vis-item.expanded').forEach(el => {
+        document.querySelectorAll(".vis-item.expanded").forEach((el) => {
           if (el !== element) {
-            el.classList.remove('expanded');
+            el.classList.remove("expanded");
           }
         });
-        
-        element.classList.add('expanded');
+
+        element.classList.add("expanded");
       }
     }
   });
@@ -397,5 +442,5 @@ export const CONFIG = {
     OBOTICARIO: "cliente-oboticario",
     COGNA: "cliente-cogna",
     ENGIE: "cliente-engie",
-  }
+  },
 };
