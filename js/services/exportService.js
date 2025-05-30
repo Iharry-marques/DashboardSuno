@@ -4,6 +4,9 @@
  * @project Dashboard de Tarefas - SUNO
  */
 
+// Importar a função de notificação do componente de UI
+import { mostrarNotificacao } from '../components/uiComponents.js';
+
 /**
  * Exporta dados para CSV
  * @param {Array} dados - Dados a serem exportados
@@ -27,6 +30,8 @@ export function exportarParaCSV(dados, headers, formatarLinha, nomeArquivo = 'da
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
+  // Garantir que moment() esteja disponível globalmente ou importado se necessário
+  // Assumindo que moment está globalmente disponível conforme outros arquivos
   link.setAttribute("download", `${nomeArquivo}_${moment().format("YYYY-MM-DD")}.csv`);
   link.style.visibility = "hidden";
 
@@ -44,7 +49,7 @@ export function exportarParaCSV(dados, headers, formatarLinha, nomeArquivo = 'da
 /**
  * Formata dados de tarefas para exportação CSV
  * @param {Array} dados - Dados de tarefas
- * @returns {Array} - Dados formatados para CSV
+ * @returns {{headers: Array<string>, formatarLinha: Function}} - Objeto com cabeçalhos e função de formatação
  */
 export function formatarTarefasParaCSV(dados) {
   const headers = [
@@ -67,7 +72,14 @@ export function formatarTarefasParaCSV(dados) {
     if (item.TaskOwnerFullPath) {
       const partes = item.TaskOwnerFullPath.split("/").map((p) => p.trim());
       if (partes.length > 1) {
-        subgrupo = partes.slice(1).join(" / ");
+        // Verifica se a primeira parte é o grupo principal para evitar incluí-la no subgrupo
+        if (partes[0] === item.TaskOwnerGroup) {
+            subgrupo = partes.slice(1).join(" / ");
+        } else {
+            // Se não começar com o grupo principal (casos especiais como Bruno Prosperi), considera todo o path como subgrupo?
+            // Ajustar conforme a lógica de negócio exata. Por ora, mantém a lógica anterior.
+            subgrupo = partes.slice(1).join(" / "); // Pode precisar de ajuste
+        }
       }
     }
 
@@ -80,7 +92,7 @@ export function formatarTarefasParaCSV(dados) {
       item.end ? moment(item.end).format("DD/MM/YYYY") : "N/A",
       item.responsible || "N/A",
       item.TaskOwnerGroup || "N/A",
-      subgrupo || "N/A",
+      subgrupo || "N/A", // Usar o subgrupo extraído
       item.Priority || "N/A",
       item.PipelineStepTitle || "N/A",
     ];
@@ -95,7 +107,7 @@ export function formatarTarefasParaCSV(dados) {
 /**
  * Formata dados de projetos para exportação CSV
  * @param {Array} dados - Dados de projetos
- * @returns {Array} - Dados formatados para CSV
+ * @returns {{headers: Array<string>, formatarLinha: Function}} - Objeto com cabeçalhos e função de formatação
  */
 export function formatarProjetosParaCSV(dados) {
   const headers = [
@@ -132,40 +144,6 @@ export function formatarProjetosParaCSV(dados) {
   };
 }
 
-/**
- * Exibe uma notificação toast
- * @param {string} titulo - Título da notificação
- * @param {string} mensagem - Texto da mensagem
- * @param {string} tipo - Tipo da notificação: "info", "success", "warning" ou "error"
- */
-function mostrarNotificacao(titulo, mensagem, tipo = "info") {
-  let container = document.querySelector(".toast-container");
-  if (!container) {
-    container = document.createElement("div");
-    container.className = "toast-container position-fixed bottom-0 end-0 p-3";
-    container.style.zIndex = "1050";
-    document.body.appendChild(container);
-  }
+// A função duplicada mostrarNotificacao foi removida daqui.
+// Ela agora é importada de ../components/uiComponents.js
 
-  const toastId = `toast-${Date.now()}`;
-  const html = `
-    <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-      <div class="toast-header ${tipo === "error" ? "bg-danger text-white" :
-        tipo === "success" ? "bg-success text-white" :
-        tipo === "warning" ? "bg-warning" :
-        "bg-info text-white"}">
-        <strong class="me-auto">${titulo}</strong>
-        <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
-      </div>
-      <div class="toast-body">${mensagem}</div>
-    </div>
-  `;
-
-  container.insertAdjacentHTML("beforeend", html);
-  const toastElement = document.getElementById(toastId);
-  new bootstrap.Toast(toastElement, { delay: 5000 }).show();
-
-  toastElement.addEventListener("hidden.bs.toast", () => {
-    toastElement.remove();
-  });
-}

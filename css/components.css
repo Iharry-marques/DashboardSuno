@@ -77,11 +77,6 @@
   gap: .75rem;
 }
 
-.cronograma-card {
-  height: calc(100vh - 100px) !important;
-  min-height: 600px;
-}
-
 
 /* ----- Botões ----- */
 .btn {

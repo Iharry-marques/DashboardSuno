@@ -12,8 +12,9 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  padding-top: 150px; 
+  padding-top: 58px;
 }
+
 
 
 .app-header {
@@ -24,65 +25,79 @@
   z-index: 1000;
   background-color: #2f333a; /* Cor preta para o cabeçalho */
   color: #fff; /* Texto branco */
-  padding: 1.5rem 1rem; /* Aumenta o espaço para incluir filtros */
+  /* Reduzir padding vertical significativamente */
+  padding: 0.5rem 1rem; /* Reduzido de 1.5rem 1rem */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Adiciona sombra para destaque */
+  /* Usar Flexbox para alinhar tudo em uma linha */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap; /* Permitir quebra em telas muito pequenas */
+  gap: 1rem; /* Espaçamento entre grupos principais (logo, nav, filtros, controles) */
 }
 
-.app-header .container-fluid {
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0.2rem;
-  padding-top: 0.5rem;
-  padding-bottom: 0.2rem;
+/* Remover a necessidade de container-fluid interno com flex-column */
+/* .app-header .container-fluid { ... } */
+
+/* Agrupar logo e navegação */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
 }
 
-.header-top {
-  width: 100%;
+/* Agrupar filtros e controles */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap; /* Permitir quebra dos filtros/controles */
 }
+
+/* Remover a estrutura header-top e header-filters */
+/* .header-top { ... } */
+/* .header-filters { ... } */
 
 .nav-tabs-header {
-  gap: 0.3rem;
+  gap: 0.5rem; /* Ajustar gap das abas */
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* Ajustar gap dos controles */
 }
 
 .header-controls .btn {
-  min-width: 36px;
-  min-height: 32px;
+  min-width: auto; /* Remover min-width */
+  min-height: auto; /* Remover min-height */
+  padding: 0.25rem 0.6rem; /* Ajustar padding dos botões de controle */
 }
 
-.header-filters select,
-.header-filters fieldset {
-  margin-bottom: 0;
+/* Estilos para os filtros diretamente dentro do header-right */
+.header-right select,
+.header-right fieldset {
+  margin-bottom: 0; /* Remover margem inferior */
+  height: 32px; /* Definir altura fixa para selects */
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
 }
 
-.header-filters {
-  gap: 0.7rem;
+.header-right fieldset {
+  padding-left: 0.5rem;
 }
 
-/* Filtros no cabeçalho */
-.app-header .filter-card {
-  flex: 1 1 100%;
-  margin-top: 1rem;
-  background: none;
-  box-shadow: none;
-  padding: 0;
-  color: #fff; /* Texto branco para os filtros */
-}
-
-.app-header .filter-card .card-body {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  align-items: center;
-  justify-content: space-between;
-}
+/* Remover estilos antigos de filter-card */
+/* .app-header .filter-card { ... } */
 
 .app-footer {
   background-color: #222;
   color: white;
   padding: 1rem 0;
-  margin-top: auto; /* Garante que o footer fique no final da página */
+  margin-top: auto;  /* Isto empurra o footer para baixo! */
   text-align: center;
 }
+
 
 /* Container principal de conteúdo */
 #main-content { /* Aplicado ao .app-container nos HTMLs */
@@ -116,7 +131,33 @@
   .two-columns {
     grid-template-columns: 1fr;
   }
+  /* Ajustes de responsividade para o header */
+  .app-header {
+    justify-content: center; /* Centralizar em telas menores */
+    padding-top: 0.8rem;
+    padding-bottom: 0.8rem;
+  }
+  .header-left {
+    width: 100%;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+  }
+  .header-right {
+    width: 100%;
+    justify-content: center;
+  }
 }
+
+@media (max-width: 576px) {
+  .nav-tabs-header {
+    font-size: 0.9rem; /* Reduzir fonte das abas */
+    gap: 0.3rem;
+  }
+  .header-right select {
+     flex-grow: 1; /* Permitir que selects cresçam */
+  }
+}
+
 
 /* Layout de três colunas */
 .three-columns {
@@ -129,13 +170,15 @@
   .three-columns {
     grid-template-columns: 1fr 1fr;
   }
-}
-
-@media (max-width: 576px) {
-  .three-columns {
-    grid-template-columns: 1fr;
+  /* Ajustes de responsividade para o header */
+  .app-header {
+      gap: 0.5rem; /* Reduzir gap geral em telas médias */
+  }
+  .header-right {
+      gap: 0.5rem; /* Reduzir gap dos filtros/controles */
   }
 }
+
 
 /* Containers flexíveis */
 .flex-container {
@@ -263,13 +306,19 @@
   min-width: 0 !important;
   min-height: 500px;
   background: var(--card-bg, #fff);
-  height: calc(100vh - 240px) !important;
+  height: calc(100vh - 180px) !important;
+  overflow-y: auto !important;
   overflow-x: auto;
 }
 
+
+
+
+
 .cronograma-card {
-  min-height: 500px;
-  height: calc(100vh - 200px) !important;
+  min-height: 100vh;
+  /* Ajustar altura considerando o novo header */
+  height: calc(100vh - 120px); /* Reduzido de 200px */
   background: var(--card-bg, #fff);
   box-shadow: 0 4px 10px rgba(0,0,0,0.03);
   overflow: visible;
@@ -285,9 +334,6 @@ html {
   font-size: 16px; /* Pode ser ajustado via JS se o zoom de fonte for desejado */
 }
 
-.app-header .form-select,
-.app-header .form-check,
-.app-header button,
-.app-header fieldset {
-  margin-bottom: 0.5rem;
-}
+/* Remover margem inferior dos elementos do header */
+/* .app-header .form-select, ... { margin-bottom: 0.5rem; } */
+
