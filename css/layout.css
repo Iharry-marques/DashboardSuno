@@ -100,12 +100,14 @@
 
 
 /* Container principal de conteúdo */
-#main-content { /* Aplicado ao .app-container nos HTMLs */
-  margin: 0 auto; /* Centraliza o bloco se sua largura efetiva for menor que a viewport */
-  display: block;
-  /* width: 100vw;  A largura agora é controlada pelo JavaScript para o zoom */
-  overflow-x: hidden; /* Previne scrollbars horizontais indesejadas devido ao scaling */
+#main-content {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;  /* ESSENCIAL! */
+  height: 100%;
 }
+
 
 /* Layout de grid para seções */
 .grid-layout {
@@ -223,12 +225,15 @@
 
 /* Ajuste para gantt-row e gantt-col para ocupar 100% do pai (#main-content) */
 .gantt-row, .gantt-col {
-  width: 100% !important; /* Alterado de 100vw */
-  max-width: 100% !important; /* Alterado de 100vw */
-  margin: 0 !important;
-  padding: 0 !important;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
+  display: flex;        /* Torna .gantt-col flexível */
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
-  display: block !important;
 }
 
 
@@ -304,29 +309,19 @@
 
 .timeline-container {
   min-width: 0 !important;
-  min-height: 500px;
   background: var(--card-bg, #fff);
-  height: calc(100vh - 180px) !important;
-  overflow-y: auto !important;
-  overflow-x: auto;
 }
-
-
-
 
 
 .cronograma-card {
-  min-height: 100vh;
-  /* Ajustar altura considerando o novo header */
-  height: calc(100vh - 120px); /* Reduzido de 200px */
-  background: var(--card-bg, #fff);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-  overflow: visible;
-  width: 100% !important; /* Alterado de 100vw para preencher o .gantt-col ou .col-12 */
-  max-width: 100% !important; /* Alterado de 100vw */
-  margin: 0 !important; /* Removido auto para não conflitar com width 100% */
-  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
 }
+
+
 
 
 /* Garante que os botões de zoom não afetem o cabeçalho (se o zoom de fonte for usado) */

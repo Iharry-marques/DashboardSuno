@@ -209,11 +209,19 @@
 
 
 /* ----- Timeline Container ----- */
-.timeline-container {
-  height: 100%;
-  min-height: 500px;
-  background-color: var(--card-bg);
+.timeline-container,
+#timeline.timeline-container {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  width: 100% !important;
+  background-color: var(--card-bg, #fff);
+  overflow-y: auto !important;
+  overflow-x: auto !important;
+  display: flex;
+  flex-direction: column;
 }
+
 
 /* ----- Elementos de Texto Gerais da Timeline ----- */
 .vis-time-axis .vis-text {
@@ -243,13 +251,7 @@
   --vis-item-cluster-stack-padding: 2px;
 }
 
-#timeline.timeline-container {
-  height: 75vh;               /* Altura fixa relativa à tela */
-  min-height: 400px;
-  max-height: 90vh;           /* Não obrigatório, mas pode ajudar */
-  overflow-y: auto ;
-  overflow-x: hidden;
-}
+
 
 /* Remover padding inferior dos painéis */
 .vis-panel.vis-center, .vis-panel.vis-left, .vis-panel.vis-right, .vis-panel.vis-top, .vis-panel.vis-bottom {

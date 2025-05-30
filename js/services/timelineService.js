@@ -15,46 +15,19 @@ export function getTimelineOptions() {
   return {
     orientation: "top",
     stack: true,
-    margin: { item: 5 }, // Reduzir margem entre itens empilhados
-    zoomMin: 1000 * 60 * 60 * 24 * 7, // Mínimo de 7 dias
-    zoomMax: 1000 * 60 * 60 * 24 * 180, // Máximo de 180 dias
+    margin: { item: 5 },
+    zoomMin: 1000 * 60 * 60 * 24 * 7,
+    zoomMax: 1000 * 60 * 60 * 24 * 180,
     start: moment().subtract(1, "weeks"),
     end: moment().add(2, "weeks"),
     groupOrder: (a, b) => a.content.localeCompare(b.content),
     horizontalScroll: true,
     verticalScroll: true,
     height: "100%",
-    // Usar template para renderização customizada
-    template: function (item, element, data) {
-      if (!data) return;
-      // CORREÇÃO: Usar SVG inline para o ícone de tarefa curta
-      if (data.isShortDuration) {
-        // SVG para um círculo de informação (semelhante a fa-info-circle)
-        // A cor será definida via CSS usando 'fill: currentColor'
-        return `<div class="timeline-task-icon ${data.className || ""}">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="10" height="10" fill="currentColor">
-                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-                    <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.064.293.006.399.287.47l.45.082.082.38-.45.083a.503.503 0 0 1-.487-.01L5.21 11.42a.5.5 0 0 1-.029-.47l.738-3.468c.064-.293-.006-.399-.287-.47L5.21 7.17a.5.5 0 0 1-.004-.487l.082-.38.45.083.082.38-.45.083a.5.5 0 0 1-.487.01L5.21 6.588a.5.5 0 0 1 .487-.592l2.29-.287a.5.5 0 0 1 .592.487zM8 4.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
-                  </svg>
-                </div>`;
-      } else {
-        const isSubtask = data.itemData?.tipo === "Subtarefa";
-        const titlePrefix = isSubtask ? "↳ " : "";
-        // Remover o priority-dot explícito, a cor da barra indica
-        return `<div class="timeline-item-content ${data.className || ""}">
-                  <span class="task-label">${titlePrefix}${
-          data.itemData?.name || "Tarefa sem nome"
-        }</span>
-                </div>`;
-      }
-    },
-    // Desabilitar tooltip padrão no hover
+    // itemHeightRatio: 0.8,  <-- REMOVA ou COMENTE ESSA LINHA!
+    template: function (item, element, data) { /* ... */ },
     showTooltips: false,
-    itemHeightRatio: 0.8,
-    snap: function (date, scale, step) {
-      var hour = 60 * 60 * 1000;
-      return Math.round(date / hour) * hour;
-    },
+    snap: function (date, scale, step) { /* ... */ },
   };
 }
 
