@@ -212,8 +212,8 @@
 .timeline-container,
 #timeline.timeline-container {
   flex: 1 1 auto !important;
-  min-height: 0 !important;
-  height: 100% !important;
+  min-height: 400px;
+  height: calc(100vh - 200px) !important; /* Altura responsiva */
   width: 100% !important;
   background-color: var(--card-bg, #fff);
   overflow-y: auto !important;
@@ -258,3 +258,15 @@
     padding-bottom: 0;
 }
 
+/* Adicione media queries para responsividade */
+@media (max-width: 992px) {
+  .timeline-container {
+    height: calc(100vh - 180px) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .timeline-container {
+    height: calc(100vh - 160px) !important;
+  }
+}

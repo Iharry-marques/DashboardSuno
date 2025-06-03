@@ -16,18 +16,33 @@ export function getTimelineOptions() {
     orientation: "top",
     stack: true,
     margin: { item: 5 },
-    zoomMin: 1000 * 60 * 60 * 24 * 7,
-    zoomMax: 1000 * 60 * 60 * 24 * 180,
+    zoomMin: 1000 * 60 * 60 * 24 * 7, // 7 dias
+    zoomMax: 1000 * 60 * 60 * 24 * 180, // 180 dias
     start: moment().subtract(1, "weeks"),
     end: moment().add(2, "weeks"),
-    groupOrder: (a, b) => a.content.localeCompare(b.content),
+    groupOrder: (a, b) => a.content.localeCompare(b.content), // Ordena grupos pelo nome
     horizontalScroll: true,
     verticalScroll: true,
     height: "100%",
-    // itemHeightRatio: 0.8,  <-- REMOVA ou COMENTE ESSA LINHA!
-    template: function (item, element, data) { /* ... */ },
-    showTooltips: false,
-    snap: function (date, scale, step) { /* ... */ },
+    // itemHeightRatio: 0.8, // Removido ou comentado conforme discussão
+    template: function (item, element, data) {
+      // Template padrão pode ser simples ou customizado aqui.
+      // Se 'item.content' existir, Vis.js o usará por padrão.
+      // Para personalização mais fina, pode-se verificar 'item.type' ou classes.
+      if (item.isShortDuration) {
+        // Exemplo se você adicionar 'isShortDuration' aos dados do item
+        // Para tarefas curtas, pode retornar um ícone ou string vazia
+        // Ex: return `<div class="timeline-task-icon"><i class="fas fa-flag"></i></div>`;
+        return ""; // Deixa o CSS cuidar do ícone para tarefas .curta
+      }
+      return item.content; // Para tarefas longas, exibe o conteúdo (nome da tarefa)
+    },
+    showTooltips: false, // Tooltips customizados são usados
+    snap: function (date, scale, step) {
+      // Arredonda para o início do dia ao arrastar/redimensionar
+      var hour = 60 * 60 * 1000;
+      return Math.round(date / hour) * hour;
+    },
   };
 }
 
@@ -68,7 +83,7 @@ function showCustomTooltip(itemData, event) {
   tooltip.style.left = `${left}px`;
   tooltip.style.top = `${top}px`;
 
-  void tooltip.offsetWidth;
+  void tooltip.offsetWidth; // Force reflow
   tooltip.classList.add("vis-visible");
   activeTooltipElement = tooltip;
 
@@ -89,6 +104,7 @@ function closeTooltipOnClickOutside(event) {
     activeTooltipElement.remove();
     activeTooltipElement = null;
   } else if (activeTooltipElement) {
+    // Se o clique foi dentro do tooltip, reanexa o listener para o próximo clique fora
     setTimeout(() => {
       document.addEventListener("click", closeTooltipOnClickOutside, {
         once: true,
@@ -105,6 +121,7 @@ function closeTooltipOnClickOutside(event) {
  */
 function configurarEventosTimeline(timeline, items) {
   timeline.on("click", function (properties) {
+    // Fecha tooltip se clicar fora de um item e um tooltip estiver ativo
     if (activeTooltipElement && !properties.item) {
       activeTooltipElement.remove();
       activeTooltipElement = null;
@@ -113,17 +130,18 @@ function configurarEventosTimeline(timeline, items) {
       });
     }
 
-    if (!properties.item) return;
+    if (!properties.item) return; // Sai se nenhum item foi clicado
 
     const id = properties.item;
     const item = items.get(id);
 
-    if (!item || !item.tooltipContent) return;
+    if (!item || !item.tooltipContent) return; // Sai se o item não tem conteúdo de tooltip
 
     showCustomTooltip(item, properties.event);
-    properties.event.stopPropagation();
+    properties.event.stopPropagation(); // Previne que o evento de clique no documento feche o tooltip imediatamente
   });
 
+  // Remove tooltip ao mudar o range da timeline (zoom, scroll)
   timeline.on("rangechange", () => {
     if (activeTooltipElement) {
       activeTooltipElement.remove();
@@ -184,47 +202,97 @@ export function ajustarZoom(timeline, fator) {
  * Configura eventos de tela cheia para o container da timeline
  * @param {HTMLElement} btnFullscreen - Botão para ativar modo tela cheia
  * @param {HTMLElement} timelineCard - Container da timeline que será expandido
- * @param {object} timeline - Instância da timeline para redimensionar
+ * @param {object} timelineInstance - Instância da timeline para redimensionar
  */
 export function configurarEventoTelaCheia(
   btnFullscreen,
-  timelineCard,
-  timeline
+  timelineCard, // Este deve ser o elemento que entra em tela cheia, geralmente o card ou o #timeline
+  timelineInstance // Renomeado para evitar conflito com o ID 'timeline'
 ) {
   if (!btnFullscreen || !timelineCard) return;
 
   btnFullscreen.addEventListener("click", () => {
     if (!document.fullscreenElement) {
-      (
-        timelineCard.requestFullscreen ||
-        timelineCard.webkitRequestFullscreen ||
-        timelineCard.msRequestFullscreen
-      ).call(timelineCard);
+      if (timelineCard.requestFullscreen) {
+        timelineCard.requestFullscreen();
+      } else if (timelineCard.webkitRequestFullscreen) {
+        /* Safari */
+        timelineCard.webkitRequestFullscreen();
+      } else if (timelineCard.msRequestFullscreen) {
+        /* IE11 */
+        timelineCard.msRequestFullscreen();
+      }
     } else {
-      (
-        document.exitFullscreen ||
-        document.webkitExitFullscreen ||
-        document.msExitFullscreen
-      ).call(document);
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.webkitExitFullscreen) {
+        /* Safari */
+        document.webkitExitFullscreen();
+      } else if (document.msExitFullscreen) {
+        /* IE11 */
+        document.msExitFullscreen();
+      }
     }
   });
 
   document.addEventListener("fullscreenchange", () => {
-    if (timeline) {
-      const timelineElement = document.getElementById("timeline");
-      if (timelineElement) {
-        const defaultHeight =
-          getComputedStyle(timelineElement).getPropertyValue(
-            "--default-timeline-height"
-          ) || "calc(100vh - 160px)";
-        timelineElement.style.height = document.fullscreenElement
-          ? `${window.innerHeight - 80}px`
-          : defaultHeight;
-        timeline.redraw();
-      }
+    if (timelineInstance) {
+      // Usa a instância da timeline passada
+      // Força um redesenho/ajuste da timeline quando o modo de tela cheia muda
+      setTimeout(() => {
+        // Pequeno delay para garantir que o DOM atualizou as dimensões
+        timelineInstance.redraw();
+        timelineInstance.fit(); // Opcional, pode ser útil
+        stretchTimelineGroups(); // Adicionado para recalcular altura dos grupos em tela cheia
+        // Disparar um evento de resize pode ajudar bibliotecas a se ajustarem
+        window.dispatchEvent(new Event("resize"));
+      }, 100);
     }
   });
 }
+
+/**
+ * Ajusta a altura dos painéis de grupo da timeline para preencher o espaço vertical.
+ */
+function stretchTimelineGroups() {
+  setTimeout(() => {
+    const container = document.getElementById("timeline");
+    if (!container) return;
+
+    const centerPanel = container.querySelector('.vis-center');
+    const groups = container.querySelectorAll(".vis-group");
+    if (!groups.length) return;
+
+    // Altura real do painel central do Gantt (onde as linhas aparecem)
+    const containerHeight = centerPanel ? centerPanel.offsetHeight : container.offsetHeight;
+
+    // Só faz o ajuste se a altura está realista
+    if (containerHeight < 200) {
+      console.warn("stretchTimelineGroups abortado: altura insuficiente", containerHeight);
+      return;
+    }
+
+    let groupHeight = Math.floor((containerHeight - 24) / groups.length);
+    if (groupHeight < 45) groupHeight = 45; // mínimo visual
+    if (groupHeight > 180) groupHeight = 180; // máximo visual
+
+    groups.forEach((group, idx) => {
+      group.style.minHeight = `${groupHeight}px`;
+      group.style.height = `${groupHeight}px`;
+    });
+
+    // DEBUG: Veja se alguma camada de overlay está atrapalhando (ajuste pointer-events no DevTools se precisar)
+    setTimeout(() => {
+      const overlays = container.querySelectorAll(".vis-panel, .vis-background, .vis-vertical, .vis-horizontal");
+      overlays.forEach(panel => {
+        panel.style.pointerEvents = "auto"; // Troque para "none" só se precisar testar no DevTools!
+      });
+    }, 5);
+
+    console.log("stretchTimelineGroups: groups ajustados para", groupHeight, "px");
+  }, 120); // Delay maior para garantir render finalizado (ajuste se necessário)
+}
+
 
 /**
  * Cria uma timeline para visualização de tarefas por responsável
@@ -251,13 +319,14 @@ export function criarTimelineTarefas(container, dados, config = {}) {
         const startDate = moment(item.start);
         let endDate;
 
-        // --- CORREÇÃO DO PROBLEMA ---
-        if (!item.end || moment(item.end).isSame(startDate, "day")) {
-          endDate = startDate.clone().endOf("day");
+        if (!item.end) {
+          endDate = startDate.clone().add(1, "days").endOf("day");
         } else {
           endDate = moment(item.end);
-          if (endDate.isBefore(startDate))
-            endDate = startDate.clone().endOf("day");
+          // Se a diferença for menor que 1 dia, forçar 1 dia
+          if (!endDate.isAfter(startDate)) {
+            endDate = startDate.clone().add(1, "days").endOf("day");
+          }
         }
 
         const durationHours = endDate.diff(startDate, "hours");
@@ -287,12 +356,13 @@ export function criarTimelineTarefas(container, dados, config = {}) {
 
         return {
           id: idx,
+          content: item.name || "Tarefa sem nome", // <--- ADICIONADO PARA EXIBIR O NOME DA TAREFA
           start: startDate.toDate(),
           end: endDate.toDate(),
           group: item.responsible,
           className: taskClass,
-          isShortDuration: isShortDuration,
-          itemData: item,
+          isShortDuration: isShortDuration, // Para uso no template, se necessário
+          itemData: item, // Mantém os dados originais para referência
           priorityClass: priorityClass,
           tooltipContent: tooltipContent,
         };
@@ -304,30 +374,21 @@ export function criarTimelineTarefas(container, dados, config = {}) {
     );
 
     const options = { ...getTimelineOptions(), ...config.timelineOptions };
+    // O template em getTimelineOptions será usado se 'content' for fornecido nos itens.
+    // Se precisar de um template específico APENAS para tarefas, defina-o aqui:
+    // options.template = function(item, element, data) { ... }
+
     const timeline = new vis.Timeline(container, items, visGroups, options);
-    function stretchTimelineGroups() {
-      const container = document.getElementById("timeline");
-      if (!container) return;
-      const groups = container.querySelectorAll(".vis-group");
-      if (!groups.length) return;
 
-      const containerHeight = container.offsetHeight;
-      const padding = 24;
-      let groupHeight = Math.floor((containerHeight - padding) / groups.length);
+    // Ajuste para garantir renderização correta após carregamento e em tab switch
+    setTimeout(() => {
+      if (timeline) {
+        timeline.fit(); // Ajusta o zoom para caber todos os itens
+        stretchTimelineGroups(); // Sua função customizada para altura dos grupos
+        window.dispatchEvent(new Event("resize")); // Força bibliotecas a recalcularem layout
+      }
+    }, 50); // Pequeno delay
 
-      // Limitar altura máxima por grupo (opcional)
-      const maxHeight = 180; // px, ajuste se quiser evitar grupos gigantes
-      if (groupHeight > maxHeight) groupHeight = maxHeight;
-
-      groups.forEach((group) => {
-        group.style.minHeight = `${groupHeight}px`;
-        group.style.height = `${groupHeight}px`;
-      });
-    }
-
-    // Use após renderizar o gráfico
-    timeline.fit();
-    stretchTimelineGroups();
     configurarEventosTimeline(timeline, items);
 
     return { timeline, items, groups: visGroups };
@@ -363,9 +424,9 @@ export function criarTimelineProjetos(container, projetos, config = {}) {
         const startDate = moment(projeto.start);
         let endDate = projeto.end
           ? moment(projeto.end)
-          : startDate.clone().add(14, "days");
+          : startDate.clone().add(14, "days"); // Default de 14 dias se não houver data final
         if (endDate.isBefore(startDate))
-          endDate = startDate.clone().add(1, "hour");
+          endDate = startDate.clone().add(1, "hour"); // Garante que end é depois de start
 
         let statusClass = "status-andamento";
         if (projeto.status === "Concluído") statusClass = "status-concluido";
@@ -392,13 +453,17 @@ export function criarTimelineProjetos(container, projetos, config = {}) {
               <p><strong>Prioridade:</strong> ${projeto.priority || "Média"}</p>
             </div>`;
 
+        // A propriedade 'content' aqui é usada pelo template customizado abaixo
         return {
           id: idx,
+          content: `<strong>${
+            projeto.name || "Projeto sem nome"
+          }</strong><br>Equipe: ${projeto.groups?.join(", ") || "N/A"}`,
           start: startDate.toDate(),
           end: endDate.toDate(),
           group: projeto.client,
           className: `${priorityClass} ${statusClass}`,
-          itemData: projeto,
+          itemData: projeto, // Mantém os dados originais
           priorityClass: priorityClass,
           statusClass: statusClass,
           tooltipContent: tooltipContent,
@@ -409,29 +474,36 @@ export function criarTimelineProjetos(container, projetos, config = {}) {
     const visGroups = new vis.DataSet(
       clientes.map((cliente) => ({
         id: cliente,
-        content: `<strong>${cliente}</strong>`,
-        className: config.clientColors?.[cliente.toUpperCase()] || "",
+        content: `<strong>${cliente}</strong>`, // Nome do cliente em negrito no grupo
+        className: config.clientColors?.[cliente.toUpperCase()] || "", // Aplica classe de cor se definida
       }))
     );
 
+    // Template customizado para projetos
     const options = {
-      ...getTimelineOptions(),
-      // Sobrescrever template para projetos (não precisa de ícone)
+      ...getTimelineOptions(), // Pega as opções base
       template: function (item, element, data) {
-        if (!data) return "";
-        const equipe = data.itemData?.groups?.join(" / ") || "Sem equipe";
-        const responsavel =
-          data.itemData?.responsibles?.join(", ") || "Sem responsável";
-        // Remover priority-dot explícito
-        return `<div class="timeline-item-content ${data.className || ""}">
-                    <span class="task-label"><strong>${equipe}</strong> - ${responsavel}</span>
-                  </div>`;
+        // Sobrescreve o template
+        if (!item || !item.itemData) return ""; // Proteção contra dados nulos
+        // Aqui você pode usar item.content ou acessar item.itemData para mais detalhes
+        // A propriedade 'content' já foi formatada acima para incluir nome e equipe.
+        // Para a visualização de clientes, o nome do projeto + equipe já estão em item.content
+        return `<div class="task-label">${item.content}</div>`;
       },
-      ...config.timelineOptions,
+      ...config.timelineOptions, // Permite sobrescrever via config
     };
 
     const timeline = new vis.Timeline(container, items, visGroups, options);
-    timeline.fit();
+
+    // Ajuste para garantir renderização correta
+    setTimeout(() => {
+      if (timeline) {
+        timeline.fit();
+        stretchTimelineGroups(); // Sua função customizada
+        window.dispatchEvent(new Event("resize"));
+      }
+    }, 50);
+
     configurarEventosTimeline(timeline, items);
 
     return { timeline, items, groups: visGroups };
@@ -450,7 +522,8 @@ export const CONFIG = {
     low: "task-priority-low",
   },
   clientColors: {
-    SICREDI: "cliente-sicredi",
+    // Usado para colorir grupos de clientes, se necessário
+    SICREDI: "cliente-sicredi", // Defina essas classes no seu CSS
     SAMSUNG: "cliente-samsung",
     VIVO: "cliente-vivo",
     RD: "cliente-rd",
@@ -460,3 +533,7 @@ export const CONFIG = {
     ENGIE: "cliente-engie",
   },
 };
+
+// Adiciona o listener para o evento de resize da janela
+// Isso garante que a altura dos grupos seja recalculada se a janela for redimensionada
+window.addEventListener("resize", stretchTimelineGroups);

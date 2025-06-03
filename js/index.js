@@ -39,8 +39,11 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    // Inicializa controles de zoom e aplica zoom inicial DEPOIS de carregar módulos
-    inicializarControleZoomSite(); 
+    // Inicializa controles de zoom (agora baseado em fonte)
+    inicializarControleZoomFonte(); 
+    
+    // Atualizar o ano no rodapé (comum a todas as páginas)
+    atualizarAnoRodape();
 });
 
 /**
@@ -70,74 +73,59 @@ function carregarModuloEspecifico(pageName) {
   } catch (error) {
     console.error('Erro ao carregar módulo:', error);
   }
-  
-  // Atualizar o ano no rodapé (comum a todas as páginas)
+}
+
+// --- Bloco de Controle de Zoom do Site (baseado em fonte) ---
+
+/**
+ * Ajusta o zoom da fonte do site
+ * @param {string} acao - 'aumentar' ou 'diminuir'.
+ */
+function ajustarZoomFonte(acao) {
+  const html = document.documentElement;
+  const tamanhoAtual = parseFloat(getComputedStyle(html).fontSize);
+  let novoZoom = tamanhoAtual;
+
+  if (acao === 'aumentar') {
+    novoZoom = Math.min(tamanhoAtual * 1.1, 20); // 20px é o máximo
+  } else if (acao === 'diminuir') {
+    novoZoom = Math.max(tamanhoAtual * 0.9, 10); // 10px é o mínimo
+  }
+
+  html.style.fontSize = `${novoZoom}px`;
+  localStorage.setItem('siteFontSize', novoZoom);
+}
+
+/**
+ * Inicializa os botões de controle de zoom do site e aplica o zoom salvo.
+ */
+function inicializarControleZoomFonte() {
+  const btnZoomIn = document.getElementById('btn-zoom-in-header');
+  const btnZoomOut = document.getElementById('btn-zoom-out-header');
+
+  // Restaurar zoom salvo (se existir)
+  const tamanhoSalvo = localStorage.getItem('siteFontSize');
+  if (tamanhoSalvo) {
+    document.documentElement.style.fontSize = `${tamanhoSalvo}px`;
+  }
+
+  btnZoomIn?.addEventListener('click', () => ajustarZoomFonte('aumentar'));
+  btnZoomOut?.addEventListener('click', () => ajustarZoomFonte('diminuir'));
+
+  console.log("Controles de zoom do site (fonte) inicializados.");
+}
+
+/**
+ * Atualiza o ano no rodapé (comum a todas as páginas)
+ */
+function atualizarAnoRodape() {
   const anoElement = document.getElementById("ano-atual");
   if (anoElement) {
     anoElement.textContent = new Date().getFullYear();
   }
 }
 
-// --- Bloco de Controle de Zoom do Site ---
-
-let siteZoomLevel = 0.75; // valor padrão inicial (75%)
-
-/**
- * Atualiza a largura e a escala do #main-content com base no zoom.
- */
-function atualizarZoomSite() {
-  const mainContent = document.getElementById('main-content');
-  if (mainContent) {
-    const viewportWidthPx = document.documentElement.clientWidth;
-    // Calcula a largura necessária para que, após o scale, ocupe 100% da viewport
-    const newWidthPx = viewportWidthPx / siteZoomLevel;
-    
-    mainContent.style.width = `${newWidthPx}px`;
-    mainContent.style.transform = `scale(${siteZoomLevel})`;
-    mainContent.style.transformOrigin = "top left"; // Mudar para top left para evitar deslocamento central
-    console.log(`Zoom aplicado: ${siteZoomLevel}, Largura calculada: ${newWidthPx}px`);
-  }
-}
-
-/**
- * Altera o nível de zoom e atualiza a visualização.
- * @param {string} acao - 'aumentar' ou 'diminuir'.
- */
-function alterarZoomSite(acao) {
-  if (acao === 'aumentar') {
-    siteZoomLevel = Math.min(siteZoomLevel + 0.1, 2.0);
-  } else if (acao === 'diminuir') {
-    siteZoomLevel = Math.max(siteZoomLevel - 0.1, 0.5);
-  }
-  // Arredonda para evitar problemas de precisão float
-  siteZoomLevel = Math.round(siteZoomLevel * 100) / 100;
-  atualizarZoomSite();
-}
-
-/**
- * Inicializa os botões de controle de zoom do site e aplica o zoom inicial.
- */
-function inicializarControleZoomSite() {
-  const btnZoomIn = document.getElementById('btn-zoom-in-header');
-  const btnZoomOut = document.getElementById('btn-zoom-out-header');
-
-  btnZoomIn?.addEventListener('click', () => alterarZoomSite('aumentar'));
-  btnZoomOut?.addEventListener('click', () => alterarZoomSite('diminuir'));
-
-  // Aplica o zoom inicial após um pequeno delay para garantir que o layout esteja pronto
-  // Isso pode ajudar se clientWidth não estiver correto imediatamente no DOMContentLoaded
-  setTimeout(() => {
-      atualizarZoomSite();
-      // Adiciona um listener para resize para recalcular em caso de mudança da janela
-      window.addEventListener('resize', atualizarZoomSite);
-  }, 100); 
-
-  console.log("Controles de zoom do site inicializados.");
-}
-
-// --- Fim do Bloco de Controle de Zoom do Site ---
-
-// // Função legada de zoom de fonte (se existir, manter comentada ou remover se não usada)
-// function ajustarZoomFonte(acao) { ... }
-// function inicializarControleZoomFonte() { ... }
-
+// Função legada de zoom (removida)
+// function ajustarZoomSite(acao) { ... }
+// function alterarZoomSite(acao) { ... }
+// function inicializarControleZoomSite() { ... }

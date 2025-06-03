@@ -26,8 +26,15 @@ export function mostrarLoading(container, mostrar) {
         <p class="mt-3">Carregando dados...</p>
       </div>
     `;
+  } else {
+    // Remove apenas o loading-container, mas mantém o conteúdo do Gantt
+    const loading = container.querySelector('.loading-container');
+    if (loading) {
+      loading.remove();
+    }
   }
 }
+
 
 /**
  * Exibe uma notificação toast

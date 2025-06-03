@@ -203,6 +203,7 @@ function criarTimeline(projetos) {
   
   if (timelineResult) {
     appState.timeline = timelineResult.timeline;
+    window.dispatchEvent(new Event('resize'));
 
     // Re-configurar evento de tela cheia com a nova instância da timeline
     // [NOVO] Configurar evento de fullscreen para o botão do Gantt

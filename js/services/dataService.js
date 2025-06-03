@@ -63,6 +63,16 @@ export function preprocessarDados(item) {
   }
 
   const processado = { ...item };
+    if (processado.start) {
+    processado.start = processado.start
+      .replace(" UTC", "Z")
+      .replace(" ", "T");
+  }
+  if (processado.end) {
+    processado.end = processado.end
+      .replace(" UTC", "Z")
+      .replace(" ", "T");
+  }
 
   // Mapear prioridade com base no status (PipelineStepTitle)
   const statusPriority = {
