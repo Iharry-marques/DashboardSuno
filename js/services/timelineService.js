@@ -16,10 +16,10 @@ export function getTimelineOptions() {
     orientation: "top",
     stack: true,
     margin: { item: 5 },
-    zoomMin: 1000 * 60 * 60 * 24 * 7, // 7 dias
-    zoomMax: 1000 * 60 * 60 * 24 * 180, // 180 dias
-    start: moment().subtract(1, "weeks"),
-    end: moment().add(2, "weeks"),
+    zoomMin: 1000 * 60 * 60 * 24 * 3, // 3 dias mínimo (ALTERADO de 7 para 3)
+    zoomMax: 1000 * 60 * 60 * 24 * 365, // 365 dias máximo (ALTERADO de 180 para 365)
+    start: moment().subtract(3, "days"), // 3 dias antes (ALTERADO de 1 semana)
+    end: moment().add(12, "days"), // 12 dias depois (ALTERADO de 2 semanas) - Total de 15 dias
     groupOrder: (a, b) => a.content.localeCompare(b.content), // Ordena grupos pelo nome
     horizontalScroll: true,
     verticalScroll: true,
@@ -120,6 +120,19 @@ function closeTooltipOnClickOutside(event) {
  * @param {Object} items - Dataset de itens da timeline
  */
 function configurarEventosTimeline(timeline, items) {
+  // NOVO: Garantir que os eventos de clique funcionem após renderização
+  setTimeout(() => {
+    const container = timeline.dom.container;
+    if (container) {
+      // Forçar pointer-events nos itens
+      const visItems = container.querySelectorAll('.vis-item');
+      visItems.forEach(item => {
+        item.style.pointerEvents = 'auto';
+        item.style.cursor = 'pointer';
+      });
+    }
+  }, 200);
+
   timeline.on("click", function (properties) {
     // Fecha tooltip se clicar fora de um item e um tooltip estiver ativo
     if (activeTooltipElement && !properties.item) {
@@ -176,9 +189,15 @@ export function irParaHoje(timeline) {
   const range = timeline.getWindow();
   const intervalo = range.end - range.start;
   const hoje = moment().valueOf();
+  
+  // Centraliza mantendo o mesmo intervalo (zoom) - MELHORADO com animação
   timeline.setWindow({
     start: hoje - intervalo / 2,
     end: hoje + intervalo / 2,
+    animation: {
+      duration: 300,
+      easingFunction: 'easeInOutQuad'
+    }
   });
 }
 
@@ -281,13 +300,29 @@ function stretchTimelineGroups() {
       group.style.height = `${groupHeight}px`;
     });
 
-    // DEBUG: Veja se alguma camada de overlay está atrapalhando (ajuste pointer-events no DevTools se precisar)
+    // NOVO: Garantir que os cliques funcionem nos itens da timeline
     setTimeout(() => {
-      const overlays = container.querySelectorAll(".vis-panel, .vis-background, .vis-vertical, .vis-horizontal");
-      overlays.forEach(panel => {
-        panel.style.pointerEvents = "auto"; // Troque para "none" só se precisar testar no DevTools!
+      // Permitir cliques apenas no painel central onde estão os itens
+      const centerPanel = container.querySelector('.vis-center');
+      if (centerPanel) {
+        centerPanel.style.pointerEvents = 'auto';
+        centerPanel.style.position = 'relative';
+        centerPanel.style.zIndex = '1';
+      }
+      
+      // Garantir que os overlays de background não bloqueiem cliques
+      const backgrounds = container.querySelectorAll('.vis-background, .vis-overlay');
+      backgrounds.forEach(bg => {
+        bg.style.pointerEvents = 'none';
       });
-    }, 5);
+      
+      // Garantir que os itens sejam clicáveis
+      const items = container.querySelectorAll('.vis-item');
+      items.forEach(item => {
+        item.style.pointerEvents = 'auto';
+        item.style.cursor = 'pointer';
+      });
+    }, 150);
 
     console.log("stretchTimelineGroups: groups ajustados para", groupHeight, "px");
   }, 120); // Delay maior para garantir render finalizado (ajuste se necessário)
@@ -383,9 +418,13 @@ export function criarTimelineTarefas(container, dados, config = {}) {
     // Ajuste para garantir renderização correta após carregamento e em tab switch
     setTimeout(() => {
       if (timeline) {
-        timeline.fit(); // Ajusta o zoom para caber todos os itens
+        // IMPORTANTE: NÃO usar fit() para manter a escala de 15 dias
+        // timeline.fit(); // COMENTADO - Ajusta o zoom para caber todos os itens
         stretchTimelineGroups(); // Sua função customizada para altura dos grupos
         window.dispatchEvent(new Event("resize")); // Força bibliotecas a recalcularem layout
+        
+        // NOVO: Centralizar na data atual mantendo a escala
+        irParaHoje(timeline);
       }
     }, 50); // Pequeno delay
 
@@ -498,9 +537,13 @@ export function criarTimelineProjetos(container, projetos, config = {}) {
     // Ajuste para garantir renderização correta
     setTimeout(() => {
       if (timeline) {
-        timeline.fit();
+        // IMPORTANTE: NÃO usar fit() para manter a escala de 15 dias
+        // timeline.fit(); // COMENTADO
         stretchTimelineGroups(); // Sua função customizada
         window.dispatchEvent(new Event("resize"));
+        
+        // NOVO: Centralizar na data atual mantendo a escala
+        irParaHoje(timeline);
       }
     }, 50);
 
