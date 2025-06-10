@@ -1,5 +1,5 @@
 /**
- * @file dashboardView.js
+ * @file dashboardView.js - VERSÃO CORRIGIDA
  * @description Visualização principal do dashboard por equipe
  * @project Dashboard de Tarefas - SUNO
  */
@@ -90,8 +90,6 @@ function setupEventListeners() {
   // Filtros de tipo de tarefa
   getEl("mostrar-tarefas")?.addEventListener("change", atualizarFiltros);
   getEl("mostrar-subtarefas")?.addEventListener("change", atualizarFiltros);
-  
-  // O listener do botão de tela cheia será configurado após a criação da timeline
 }
 
 /**
@@ -106,7 +104,7 @@ async function carregarDadosDashboard() {
     appState.allData = await carregarDados(appState.settings.jsonUrl);
     
     preencherFiltros();
-    atualizarFiltros();
+    await atualizarFiltros(); // **CORREÇÃO: Aguardar criação da timeline**
   } catch (error) {
     console.error("Erro ao carregar dados:", error);
     mostrarNotificacao("Erro ao carregar dados", error.message, "error");
@@ -145,9 +143,9 @@ function atualizarSubgrupos() {
 }
 
 /**
- * Atualiza os filtros e a visualização
+ * Atualiza os filtros e a visualização - VERSÃO CORRIGIDA (ASYNC)
  */
-function atualizarFiltros() {
+async function atualizarFiltros() {
   if (!appState.allData || appState.allData.length === 0) return;
   
   // Obter valores dos filtros
@@ -163,15 +161,15 @@ function atualizarFiltros() {
   // Aplicar filtros
   appState.filteredData = aplicarFiltros(appState.allData, filtros);
   
-  // Criar timeline
-  criarTimeline(appState.filteredData);
+  // **CORREÇÃO: Aguardar criação da timeline**
+  await criarTimeline(appState.filteredData);
 }
 
 /**
- * Cria a timeline com os dados filtrados
+ * Cria a timeline com os dados filtrados - VERSÃO CORRIGIDA (ASYNC)
  * @param {Array} dados - Dados filtrados para exibir na timeline
  */
-function criarTimeline(dados) {
+async function criarTimeline(dados) {
   const container = getEl("timeline");
   if (!container) return;
 
@@ -183,41 +181,48 @@ function criarTimeline(dados) {
     return;
   }
 
-  // Criar timeline
-  const timelineResult = criarTimelineTarefas(container, dados, {
-    priorityClasses: CONFIG.priorityClasses
-  });
+  try {
+    console.log("Criando timeline com", dados.length, "tarefas...");
+    
+    // **CORREÇÃO: Aguardar criação da timeline**
+    const timelineResult = await criarTimelineTarefas(container, dados, {
+      priorityClasses: CONFIG.priorityClasses
+    });
 
-  if (timelineResult) {
-    appState.timeline = timelineResult.timeline;
-    window.dispatchEvent(new Event('resize'));
-
-    // [NOVO] Configurar evento de fullscreen para o botão do Gantt
-    const btnFullscreenGantt = getEl("btn-fullscreen-gantt");
-    if (btnFullscreenGantt && container) {
-      btnFullscreenGantt.onclick = () => {
-        if (!document.fullscreenElement) {
-          if (container.requestFullscreen) {
-            container.requestFullscreen();
-          } else if (container.webkitRequestFullscreen) {
-            container.webkitRequestFullscreen();
-          } else if (container.msRequestFullscreen) {
-            container.msRequestFullscreen();
+    if (timelineResult) {
+      appState.timeline = timelineResult.timeline;
+      
+      // Configurar evento de fullscreen
+      const btnFullscreenGantt = getEl("btn-fullscreen-gantt");
+      if (btnFullscreenGantt && container) {
+        btnFullscreenGantt.onclick = () => {
+          if (!document.fullscreenElement) {
+            if (container.requestFullscreen) {
+              container.requestFullscreen();
+            } else if (container.webkitRequestFullscreen) {
+              container.webkitRequestFullscreen();
+            } else if (container.msRequestFullscreen) {
+              container.msRequestFullscreen();
+            }
+          } else {
+            if (document.exitFullscreen) {
+              document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+              document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+              document.msExitFullscreen();
+            }
           }
-        } else {
-          if (document.exitFullscreen) {
-            document.exitFullscreen();
-          } else if (document.webkitExitFullscreen) {
-            document.webkitExitFullscreen();
-          } else if (document.msExitFullscreen) {
-            document.msExitFullscreen();
-          }
-        }
-      };
+        };
+      }
+      
+      console.log("Timeline de tarefas criada e configurada com sucesso!");
     }
+  } catch (error) {
+    console.error("Erro ao criar timeline:", error);
+    container.innerHTML = `<div class="alert alert-danger m-3">Erro ao criar timeline: ${error.message}</div>`;
   }
 }
-
 
 /**
  * Exporta os dados filtrados para CSV

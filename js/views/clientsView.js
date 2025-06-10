@@ -1,5 +1,5 @@
 /**
- * @file clientsView.js
+ * @file clientsView.js - VERSÃO CORRIGIDA
  * @description Visualização do dashboard por cliente
  * @project Dashboard de Tarefas - SUNO
  */
@@ -88,8 +88,6 @@ function setupEventListeners() {
   }
   
   getEl("periodo-select")?.addEventListener("change", atualizarFiltros);
-  
-  // O listener do botão de tela cheia será configurado após a criação da timeline
 }
 
 /**
@@ -107,7 +105,7 @@ async function carregarDadosClientes() {
     appState.projects = processarProjetos(appState.allData);
     
     preencherFiltros();
-    atualizarFiltros();
+    await atualizarFiltros(); // **CORREÇÃO: Aguardar criação da timeline**
   } catch (error) {
     console.error("Erro ao carregar dados:", error);
     
@@ -160,9 +158,9 @@ function preencherFiltros() {
 }
 
 /**
- * Atualiza os filtros e a visualização
+ * Atualiza os filtros e a visualização - VERSÃO CORRIGIDA (ASYNC)
  */
-function atualizarFiltros() {
+async function atualizarFiltros() {
   if (!appState.projects || appState.projects.length === 0) return;
   
   // Obter valores dos filtros
@@ -175,15 +173,15 @@ function atualizarFiltros() {
   // Aplicar filtros
   appState.filteredData = aplicarFiltros(appState.projects, filtros);
   
-  // Criar timeline
-  criarTimeline(appState.filteredData);
+  // **CORREÇÃO: Aguardar criação da timeline**
+  await criarTimeline(appState.filteredData);
 }
 
 /**
- * Cria a timeline com os dados filtrados
+ * Cria a timeline com os dados filtrados - VERSÃO CORRIGIDA (ASYNC)
  * @param {Array} projetos - Projetos filtrados para exibir na timeline
  */
-function criarTimeline(projetos) {
+async function criarTimeline(projetos) {
   const container = getEl("timeline");
   if (!container) return;
   
@@ -195,41 +193,47 @@ function criarTimeline(projetos) {
     return;
   }
   
-  // Criar timeline
-  const timelineResult = criarTimelineProjetos(container, projetos, {
-    priorityClasses: CONFIG.priorityClasses,
-    clientColors: CONFIG.clientColors
-  });
-  
-  if (timelineResult) {
-    appState.timeline = timelineResult.timeline;
-    window.dispatchEvent(new Event('resize'));
+  try {
+    console.log("Criando timeline com", projetos.length, "projetos...");
+    
+    // **CORREÇÃO: Aguardar criação da timeline**
+    const timelineResult = await criarTimelineProjetos(container, projetos, {
+      priorityClasses: CONFIG.priorityClasses,
+      clientColors: CONFIG.clientColors
+    });
+    
+    if (timelineResult) {
+      appState.timeline = timelineResult.timeline;
 
-    // Re-configurar evento de tela cheia com a nova instância da timeline
-    // [NOVO] Configurar evento de fullscreen para o botão do Gantt
-const btnFullscreenGantt = getEl("btn-fullscreen-gantt");
-if (btnFullscreenGantt && container) {
-  btnFullscreenGantt.onclick = () => {
-    if (!document.fullscreenElement) {
-      if (container.requestFullscreen) {
-        container.requestFullscreen();
-      } else if (container.webkitRequestFullscreen) {
-        container.webkitRequestFullscreen();
-      } else if (container.msRequestFullscreen) {
-        container.msRequestFullscreen();
+      // Configurar evento de fullscreen
+      const btnFullscreenGantt = getEl("btn-fullscreen-gantt");
+      if (btnFullscreenGantt && container) {
+        btnFullscreenGantt.onclick = () => {
+          if (!document.fullscreenElement) {
+            if (container.requestFullscreen) {
+              container.requestFullscreen();
+            } else if (container.webkitRequestFullscreen) {
+              container.webkitRequestFullscreen();
+            } else if (container.msRequestFullscreen) {
+              container.msRequestFullscreen();
+            }
+          } else {
+            if (document.exitFullscreen) {
+              document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+              document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+              document.msExitFullscreen();
+            }
+          }
+        };
       }
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      } else if (document.webkitExitFullscreen) {
-        document.webkitExitFullscreen();
-      } else if (document.msExitFullscreen) {
-        document.msExitFullscreen();
-      }
+      
+      console.log("Timeline de projetos criada e configurada com sucesso!");
     }
-  };
-}
-
+  } catch (error) {
+    console.error("Erro ao criar timeline:", error);
+    container.innerHTML = `<div class="alert alert-danger m-3">Erro ao criar timeline: ${error.message}</div>`;
   }
 }
 

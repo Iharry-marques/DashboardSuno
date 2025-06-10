@@ -1,5 +1,5 @@
 /**
- * @file uiComponents.js
+ * @file uiComponents.js - VERSÃO ATUALIZADA
  * @description Componentes de UI reutilizáveis para o Dashboard de Tarefas
  * @project Dashboard de Tarefas - SUNO
  */
@@ -35,6 +35,53 @@ export function mostrarLoading(container, mostrar) {
   }
 }
 
+/**
+ * Marca o container da timeline como carregado para aplicar estilos CSS
+ * @param {HTMLElement} container - Container da timeline
+ */
+export function marcarTimelineCarregada(container) {
+  if (!container) return;
+  
+  // Adiciona classe para indicar que a timeline foi carregada
+  container.classList.add('timeline-loaded');
+  
+  // Força um reflow para aplicar os estilos
+  void container.offsetWidth;
+  
+  console.log("Timeline marcada como carregada");
+}
+
+/**
+ * Verifica se o container tem dimensões válidas
+ * @param {HTMLElement} container - Container a ser verificado
+ * @returns {boolean} Se o container tem dimensões válidas
+ */
+export function verificarDimensoesContainer(container) {
+  if (!container) return false;
+  
+  const rect = container.getBoundingClientRect();
+  const temDimensoes = rect.width > 100 && rect.height > 100;
+  
+  console.log(`Container dimensions: ${rect.width}x${rect.height}, válido: ${temDimensoes}`);
+  
+  return temDimensoes;
+}
+
+/**
+ * Força um refresh visual do container
+ * @param {HTMLElement} container - Container a ser atualizado
+ */
+export function forcarRefreshContainer(container) {
+  if (!container) return;
+  
+  // Força reflow e repaint
+  container.style.display = 'none';
+  void container.offsetHeight; // Força reflow
+  container.style.display = '';
+  
+  // Dispara evento de resize para bibliotecas externas
+  window.dispatchEvent(new Event('resize'));
+}
 
 /**
  * Exibe uma notificação toast

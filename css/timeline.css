@@ -358,3 +358,134 @@
     display: none !important;
   }
 }
+
+.vis-item.task-priority-high,
+.vis-item.priority-high {
+  background-color: var(--priority-high, #ff4136) !important;
+  color: white !important;
+  border-color: rgba(255, 65, 54, 0.8) !important;
+}
+
+.vis-item.task-priority-medium,
+.vis-item.priority-medium {
+  background-color: var(--priority-medium, #ffdc00) !important;
+  color: #212529 !important;
+  border-color: rgba(255, 220, 0, 0.8) !important;
+}
+
+.vis-item.task-priority-low,
+.vis-item.priority-low {
+  background-color: var(--priority-low, #2ecc40) !important;
+  color: white !important;
+  border-color: rgba(46, 204, 64, 0.8) !important;
+}
+
+/* ----- Estados de Status ----- */
+.vis-item.status-concluido {
+  background-color: var(--status-concluido, #2ecc40) !important;
+  color: white !important;
+}
+
+.vis-item.status-atrasado {
+  background-color: var(--status-atrasado, #ff4136) !important;
+  color: white !important;
+}
+
+.vis-item.status-andamento {
+  background-color: var(--status-andamento, #0074d9) !important;
+  color: white !important;
+}
+
+/* ----- Correção para visibility e rendering ----- */
+.vis-timeline {
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.vis-timeline .vis-panel {
+  visibility: visible !important;
+}
+
+.vis-timeline .vis-item {
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* ----- Forçar altura mínima do container ----- */
+#timeline.timeline-container {
+  min-height: 400px !important;
+  height: calc(100vh - 200px) !important;
+}
+
+.timeline-container {
+  min-height: 400px !important;
+}
+
+/* ----- Corrigir problema de "desaparecimento" inicial ----- */
+.vis-timeline.vis-loading {
+  min-height: 400px;
+  background: #f8f9fa;
+}
+
+.vis-timeline .vis-center {
+  min-height: 350px;
+}
+
+/* ----- Garantir que grupos sejam visíveis ----- */
+.vis-group {
+  min-height: 45px !important;
+  visibility: visible !important;
+}
+
+.vis-label {
+  min-height: 45px !important;
+  visibility: visible !important;
+}
+
+/* ----- Tooltips customizados ----- */
+.vis-tooltip {
+  background-color: rgba(0, 0, 0, 0.95) !important;
+  color: white !important;
+  padding: 12px 16px !important;
+  border-radius: 6px !important;
+  font-size: 0.875rem !important;
+  max-width: 350px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  line-height: 1.5 !important;
+  word-wrap: break-word !important;
+  z-index: 10000 !important;
+  position: absolute !important;
+  pointer-events: none !important;
+}
+
+.vis-tooltip.vis-visible {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* ----- Correção específica para carregamento inicial ----- */
+@keyframes fadeInTimeline {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.vis-timeline {
+  animation: fadeInTimeline 0.3s ease-out;
+}
+
+/* ----- Forçar redimensionamento após carregamento ----- */
+.timeline-loaded .vis-timeline {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.timeline-loaded .vis-center {
+  width: 100% !important;
+}
