@@ -1,11 +1,11 @@
 /**
- * @file timelineService.js - VERSÃO CORRIGIDA
- * @description Serviço para manipulação e configuração da timeline
+ * @file timelineService.js - MODERNIZADO COM TOOLTIPS
+ * @description Serviço para manipulação da timeline integrado com sistema moderno de tooltips
  * @project Dashboard de Tarefas - SUNO
  */
 
-// Variável global para rastrear o tooltip ativo
-let activeTooltipElement = null;
+// Importar sistema de tooltips modernos
+import { createTimelineTooltip, destroyTooltips } from './modernTooltipService.js';
 
 /**
  * Aguarda o container ter dimensões válidas antes de prosseguir
@@ -36,15 +36,15 @@ function waitForContainerDimensions(container, maxAttempts = 50) {
 }
 
 /**
- * Configurações padrão para a timeline
+ * Configurações padrão para a timeline modernizada
  * @returns {Object} Objeto de configuração da timeline
  */
 export function getTimelineOptions() {
   return {
     orientation: "top",
     stack: true,
-    margin: { item: 5 },
-    zoomMin: 1000 * 60 * 60 * 24 * 3, // 3 dias mínimo
+    margin: { item: 6 },
+    zoomMin: 1000 * 60 * 60 * 24 * 2, // 2 dias mínimo
     zoomMax: 1000 * 60 * 60 * 24 * 365, // 365 dias máximo
     start: moment().subtract(3, "days"), // 3 dias antes
     end: moment().add(12, "days"), // 12 dias depois
@@ -52,133 +52,124 @@ export function getTimelineOptions() {
     horizontalScroll: true,
     verticalScroll: true,
     height: "100%",
-    template: function (item, element, data) {
-      if (item.isShortDuration) {
-        return "";
-      }
-      return item.content;
-    },
-    showTooltips: false,
+    showTooltips: false, // Usaremos nosso sistema customizado
     snap: function (date, scale, step) {
-      var hour = 60 * 60 * 1000;
+      const hour = 60 * 60 * 1000;
       return Math.round(date / hour) * hour;
     },
+    // Configurações de performance
+    maxHeight: '100%',
+    minHeight: 400,
+    // Configurações modernas
+    locale: 'pt-BR',
+    moment: moment,
+    timeAxis: {
+      scale: 'day',
+      step: 1
+    }
   };
 }
 
 /**
- * Cria e exibe um tooltip customizado ao lado do elemento clicado
- * @param {Object} itemData - Dados do item clicado.
- * @param {Event} event - Evento do clique.
- */
-function showCustomTooltip(itemData, event) {
-  if (activeTooltipElement) {
-    activeTooltipElement.remove();
-    activeTooltipElement = null;
-  }
-  const tooltip = document.createElement("div");
-  tooltip.className = "vis-tooltip";
-  tooltip.innerHTML = itemData.tooltipContent;
-  document.body.appendChild(tooltip);
-
-  const clickX = event.pageX;
-  const clickY = event.pageY;
-  const tooltipWidth = tooltip.offsetWidth;
-  const tooltipHeight = tooltip.offsetHeight;
-  const windowWidth = window.innerWidth;
-  const windowHeight = window.innerHeight;
-
-  let left = clickX + 15;
-  let top = clickY + 15;
-
-  if (left + tooltipWidth > windowWidth - 10) {
-    left = clickX - tooltipWidth - 15;
-  }
-  if (top + tooltipHeight > windowHeight - 10) {
-    top = clickY - tooltipHeight - 15;
-  }
-  if (left < 10) left = 10;
-  if (top < 10) top = 10;
-
-  tooltip.style.left = `${left}px`;
-  tooltip.style.top = `${top}px`;
-
-  void tooltip.offsetWidth;
-  tooltip.classList.add("vis-visible");
-  activeTooltipElement = tooltip;
-
-  setTimeout(() => {
-    document.addEventListener("click", closeTooltipOnClickOutside, {
-      once: true,
-      capture: true,
-    });
-  }, 0);
-}
-
-/**
- * Fecha o tooltip ativo se o clique ocorrer fora dele.
- * @param {Event} event - Evento de clique.
- */
-function closeTooltipOnClickOutside(event) {
-  if (activeTooltipElement && !activeTooltipElement.contains(event.target)) {
-    activeTooltipElement.remove();
-    activeTooltipElement = null;
-  } else if (activeTooltipElement) {
-    setTimeout(() => {
-      document.addEventListener("click", closeTooltipOnClickOutside, {
-        once: true,
-        capture: true,
-      });
-    }, 0);
-  }
-}
-
-/**
- * Configura eventos para a timeline, incluindo o clique para tooltip
+ * Configura tooltips modernos para elementos da timeline
  * @param {Object} timeline - Instância da timeline
  * @param {Object} items - Dataset de itens da timeline
+ * @param {string} type - Tipo da timeline ('task' ou 'project')
  */
-function configurarEventosTimeline(timeline, items) {
-  // Garantir que os eventos de clique funcionem após renderização
+function setupModernTooltips(timeline, items, type = 'task') {
+  // Aguardar renderização completa da timeline
   setTimeout(() => {
     const container = timeline.dom.container;
-    if (container) {
-      const visItems = container.querySelectorAll('.vis-item');
-      visItems.forEach(item => {
-        item.style.pointerEvents = 'auto';
-        item.style.cursor = 'pointer';
-      });
-    }
-  }, 200);
+    if (!container) return;
 
+    // Encontrar todos os elementos de item na timeline
+    const visItems = container.querySelectorAll('.vis-item');
+    
+    visItems.forEach((element, index) => {
+      // Obter o ID do item a partir do elemento DOM
+      const itemId = element.getAttribute('data-id') || 
+                    element.className.match(/vis-item-(\d+)/)?.[1] ||
+                    index;
+      
+      // Buscar dados do item
+      const itemData = items.get(itemId);
+      if (!itemData || !itemData.itemData) return;
+
+      // Criar tooltip moderno
+      try {
+        createTimelineTooltip(element, itemData.itemData, type);
+      } catch (error) {
+        console.warn('Erro ao criar tooltip para item:', itemId, error);
+      }
+    });
+
+    console.log(`Tooltips modernos configurados para ${visItems.length} itens`);
+  }, 500); // Delay para garantir renderização completa
+}
+
+/**
+ * Configura eventos para a timeline com tooltips modernos
+ * @param {Object} timeline - Instância da timeline
+ * @param {Object} items - Dataset de itens da timeline
+ * @param {string} type - Tipo da timeline ('task' ou 'project')
+ */
+function configurarEventosTimeline(timeline, items, type = 'task') {
+  // Configurar tooltips após renderização
+  setupModernTooltips(timeline, items, type);
+
+  // Reconfigurar tooltips quando a timeline for redesenhada
+  timeline.on('changed', () => {
+    setTimeout(() => {
+      setupModernTooltips(timeline, items, type);
+    }, 200);
+  });
+
+  // Garantir que os itens sejam clicáveis e interativos
+  timeline.on('afterRender', () => {
+    setTimeout(() => {
+      const container = timeline.dom.container;
+      if (container) {
+        // Tornar itens clicáveis
+        const visItems = container.querySelectorAll('.vis-item');
+        visItems.forEach(item => {
+          item.style.pointerEvents = 'auto';
+          item.style.cursor = 'pointer';
+        });
+
+        // Garantir que backgrounds não bloqueiem interações
+        const backgrounds = container.querySelectorAll('.vis-background, .vis-overlay');
+        backgrounds.forEach(bg => {
+          bg.style.pointerEvents = 'none';
+        });
+
+        // Garantir que o painel central seja interativo
+        const centerPanel = container.querySelector('.vis-center');
+        if (centerPanel) {
+          centerPanel.style.pointerEvents = 'auto';
+          centerPanel.style.position = 'relative';
+          centerPanel.style.zIndex = '1';
+        }
+      }
+    }, 100);
+  });
+
+  // Event listener para cliques (mantido para compatibilidade)
   timeline.on("click", function (properties) {
-    if (activeTooltipElement && !properties.item) {
-      activeTooltipElement.remove();
-      activeTooltipElement = null;
-      document.removeEventListener("click", closeTooltipOnClickOutside, {
-        capture: true,
-      });
-    }
-
     if (!properties.item) return;
 
     const id = properties.item;
     const item = items.get(id);
-
-    if (!item || !item.tooltipContent) return;
-
-    showCustomTooltip(item, properties.event);
-    properties.event.stopPropagation();
+    
+    if (item && item.itemData) {
+      console.log('Item clicado:', item.itemData.name);
+      // Aqui pode ser adicionada lógica adicional para cliques
+    }
   });
 
+  // Limpar tooltips quando a visualização mudar
   timeline.on("rangechange", () => {
-    if (activeTooltipElement) {
-      activeTooltipElement.remove();
-      activeTooltipElement = null;
-      document.removeEventListener("click", closeTooltipOnClickOutside, {
-        capture: true,
-      });
-    }
+    // Os tooltips do Tippy.js são automaticamente gerenciados
+    // mas podemos adicionar lógica adicional se necessário
   });
 }
 
@@ -193,11 +184,15 @@ export function moverTimeline(timeline, dias) {
   timeline.setWindow({
     start: moment(range.start).add(dias, "days").valueOf(),
     end: moment(range.end).add(dias, "days").valueOf(),
+    animation: {
+      duration: 300,
+      easingFunction: 'easeInOutQuad'
+    }
   });
 }
 
 /**
- * Centraliza a timeline na data atual
+ * Centraliza a timeline na data atual com animação suave
  * @param {object} timeline - Instância da timeline
  */
 export function irParaHoje(timeline) {
@@ -210,14 +205,14 @@ export function irParaHoje(timeline) {
     start: hoje - intervalo / 2,
     end: hoje + intervalo / 2,
     animation: {
-      duration: 300,
+      duration: 500,
       easingFunction: 'easeInOutQuad'
     }
   });
 }
 
 /**
- * Ajusta o zoom da timeline
+ * Ajusta o zoom da timeline com animação
  * @param {object} timeline - Instância da timeline
  * @param {number} fator - Fator de zoom (>1 = zoom in, <1 = zoom out)
  */
@@ -226,9 +221,14 @@ export function ajustarZoom(timeline, fator) {
   const range = timeline.getWindow();
   const centro = new Date((range.end.getTime() + range.start.getTime()) / 2);
   const novoIntervalo = (range.end - range.start) / fator;
+  
   timeline.setWindow({
     start: new Date(centro.getTime() - novoIntervalo / 2),
     end: new Date(centro.getTime() + novoIntervalo / 2),
+    animation: {
+      duration: 300,
+      easingFunction: 'easeInOutQuad'
+    }
   });
 }
 
@@ -238,11 +238,7 @@ export function ajustarZoom(timeline, fator) {
  * @param {HTMLElement} timelineCard - Container da timeline que será expandido
  * @param {object} timelineInstance - Instância da timeline para redimensionar
  */
-export function configurarEventoTelaCheia(
-  btnFullscreen,
-  timelineCard,
-  timelineInstance
-) {
+export function configurarEventoTelaCheia(btnFullscreen, timelineCard, timelineInstance) {
   if (!btnFullscreen || !timelineCard) return;
 
   btnFullscreen.addEventListener("click", () => {
@@ -297,7 +293,7 @@ function forceTimelineRefresh(timeline) {
 }
 
 /**
- * Ajusta a altura dos painéis de grupo da timeline para preencher o espaço vertical.
+ * Ajusta a altura dos painéis de grupo da timeline para preencher o espaço vertical
  */
 function stretchTimelineGroups() {
   const container = document.getElementById("timeline");
@@ -314,41 +310,46 @@ function stretchTimelineGroups() {
     return;
   }
 
-  let groupHeight = Math.floor((containerHeight - 24) / groups.length);
-  if (groupHeight < 45) groupHeight = 45;
-  if (groupHeight > 180) groupHeight = 180;
+  let groupHeight = Math.floor((containerHeight - 30) / groups.length);
+  if (groupHeight < 50) groupHeight = 50;
+  if (groupHeight > 200) groupHeight = 200;
 
   groups.forEach((group) => {
     group.style.minHeight = `${groupHeight}px`;
     group.style.height = `${groupHeight}px`;
   });
 
-  // Garantir que os itens sejam clicáveis
-  setTimeout(() => {
-    const centerPanel = container.querySelector('.vis-center');
-    if (centerPanel) {
-      centerPanel.style.pointerEvents = 'auto';
-      centerPanel.style.position = 'relative';
-      centerPanel.style.zIndex = '1';
-    }
-    
-    const backgrounds = container.querySelectorAll('.vis-background, .vis-overlay');
-    backgrounds.forEach(bg => {
-      bg.style.pointerEvents = 'none';
-    });
-    
-    const items = container.querySelectorAll('.vis-item');
-    items.forEach(item => {
-      item.style.pointerEvents = 'auto';
-      item.style.cursor = 'pointer';
-    });
-  }, 50);
-
-  console.log("stretchTimelineGroups: groups ajustados para", groupHeight, "px");
+  console.log("stretchTimelineGroups: grupos ajustados para", groupHeight, "px");
 }
 
 /**
- * Cria uma timeline para visualização de tarefas por responsável - VERSÃO CORRIGIDA
+ * Adiciona efeitos visuais modernos à timeline
+ * @param {HTMLElement} container - Container da timeline
+ */
+function addModernEffects(container) {
+  if (!container) return;
+
+  // Adicionar classe para animações CSS
+  container.classList.add('timeline-loaded', 'animate-fade-in');
+
+  // Adicionar observer para scroll animations (opcional)
+  if (window.IntersectionObserver) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animate-fade-in-up');
+        }
+      });
+    }, { threshold: 0.1 });
+
+    // Observar elementos filhos para animações escalonadas
+    const items = container.querySelectorAll('.vis-item');
+    items.forEach(item => observer.observe(item));
+  }
+}
+
+/**
+ * Cria uma timeline para visualização de tarefas por responsável - VERSÃO MODERNIZADA
  * @param {HTMLElement} container - Container onde a timeline será renderizada
  * @param {Array} dados - Dados a serem exibidos na timeline
  * @param {Object} config - Configurações adicionais
@@ -356,21 +357,29 @@ function stretchTimelineGroups() {
  */
 export async function criarTimelineTarefas(container, dados, config = {}) {
   if (!container || !dados || dados.length === 0) {
-    if (container)
-      container.innerHTML =
-        '<div class="alert alert-info m-3">Nenhuma tarefa encontrada</div>';
+    if (container) {
+      container.innerHTML = `
+        <div class="alert alert-info m-3 animate-fade-in">
+          <i class="fas fa-info-circle me-2"></i>
+          Nenhuma tarefa encontrada para o filtro selecionado
+        </div>
+      `;
+    }
     return null;
   }
 
   try {
     console.log("Aguardando dimensões válidas do container...");
     
-    // **CORREÇÃO PRINCIPAL: Aguardar container ter dimensões válidas**
+    // Aguardar container ter dimensões válidas
     const hasValidDimensions = await waitForContainerDimensions(container);
     
     if (!hasValidDimensions) {
       console.warn("Container não obteve dimensões válidas, prosseguindo mesmo assim...");
     }
+
+    // Destruir tooltips existentes
+    destroyTooltips(container);
 
     const responsaveis = [
       ...new Set(dados.map((t) => t.responsible).filter(Boolean)),
@@ -394,25 +403,10 @@ export async function criarTimelineTarefas(container, dados, config = {}) {
         const isShortDuration = durationHours < 8;
         const isSubtask = item.tipo === "Subtarefa";
         const priority = item.Priority?.toLowerCase() || "medium";
-        const priorityClass =
-          config.priorityClasses?.[priority] || config.priorityClasses?.medium || "task-priority-medium";
+        const priorityClass = `task-priority-${priority}`;
         const taskClass = `${priorityClass} ${isSubtask ? "subtask" : ""} ${
           isShortDuration ? "curta" : "longa"
         }`;
-
-        const tooltipContent = `
-          <div class="timeline-tooltip">
-            <h5>${item.name || "Tarefa sem nome"}</h5>
-            <p><strong>Cliente:</strong> ${item.client || "N/A"}</p>
-            <p><strong>Responsável:</strong> ${item.responsible || "N/A"}</p>
-            <p><strong>Período:</strong> ${startDate.format(
-              "DD/MM/YY HH:mm"
-            )} - ${endDate.format("DD/MM/YY HH:mm")}</p>
-            <p><strong>Status:</strong> ${item.PipelineStepTitle || "N/A"}</p>
-            <p><strong>Grupo:</strong> ${item.TaskOwnerFullPath || "N/A"}</p>
-            <p><strong>Tipo:</strong> ${item.tipo || "Tarefa"}</p>
-            <p><strong>Prioridade:</strong> ${item.Priority || "Média"}</p>
-          </div>`;
 
         return {
           id: idx,
@@ -422,35 +416,49 @@ export async function criarTimelineTarefas(container, dados, config = {}) {
           group: item.responsible,
           className: taskClass,
           isShortDuration: isShortDuration,
-          itemData: item,
+          itemData: item, // Dados originais para o tooltip
           priorityClass: priorityClass,
-          tooltipContent: tooltipContent,
+          title: '' // Desabilitar tooltip nativo do vis.js
         };
       })
     );
 
     const visGroups = new vis.DataSet(
-      responsaveis.map((resp) => ({ id: resp, content: resp }))
+      responsaveis.map((resp) => ({ 
+        id: resp, 
+        content: `<div class="group-label">${resp}</div>` 
+      }))
     );
 
-    const options = { ...getTimelineOptions(), ...config.timelineOptions };
+    const options = { 
+      ...getTimelineOptions(), 
+      ...config.timelineOptions 
+    };
     
     console.log("Criando timeline...");
     const timeline = new vis.Timeline(container, items, visGroups, options);
 
-    // **CORREÇÃO: Aguardar renderização completa usando Promise**
+    // Aguardar renderização completa
     await new Promise(resolve => {
-      timeline.on('changed', resolve);
+      const onChanged = () => {
+        timeline.off('changed', onChanged);
+        resolve();
+      };
+      timeline.on('changed', onChanged);
+      
       // Fallback caso o evento 'changed' não dispare
-      setTimeout(resolve, 500);
+      setTimeout(resolve, 800);
     });
 
-    console.log("Timeline criada, configurando eventos e layout...");
+    console.log("Timeline criada, configurando eventos e efeitos modernos...");
 
-    // Configurar eventos
-    configurarEventosTimeline(timeline, items);
+    // Configurar eventos e tooltips modernos
+    configurarEventosTimeline(timeline, items, 'task');
 
-    // **CORREÇÃO: Forçar refresh sequencial com verificações**
+    // Adicionar efeitos visuais modernos
+    addModernEffects(container);
+
+    // Forçar refresh sequencial com verificações
     await new Promise(resolve => {
       requestAnimationFrame(() => {
         timeline.redraw();
@@ -468,13 +476,18 @@ export async function criarTimelineTarefas(container, dados, config = {}) {
 
   } catch (error) {
     console.error("Erro ao criar timeline de tarefas:", error);
-    container.innerHTML = `<div class="alert alert-danger">Erro ao criar timeline: ${error.message}</div>`;
+    container.innerHTML = `
+      <div class="alert alert-danger m-3">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>Erro ao criar timeline:</strong> ${error.message}
+      </div>
+    `;
     return null;
   }
 }
 
 /**
- * Cria uma timeline para visualização de projetos por cliente - VERSÃO CORRIGIDA
+ * Cria uma timeline para visualização de projetos por cliente - VERSÃO MODERNIZADA
  * @param {HTMLElement} container - Container onde a timeline será renderizada
  * @param {Array} projetos - Dados de projetos a serem exibidos
  * @param {Object} config - Configurações adicionais
@@ -482,21 +495,29 @@ export async function criarTimelineTarefas(container, dados, config = {}) {
  */
 export async function criarTimelineProjetos(container, projetos, config = {}) {
   if (!container || !projetos || projetos.length === 0) {
-    if (container)
-      container.innerHTML =
-        '<div class="alert alert-info m-3">Nenhum projeto encontrado</div>';
+    if (container) {
+      container.innerHTML = `
+        <div class="alert alert-info m-3 animate-fade-in">
+          <i class="fas fa-info-circle me-2"></i>
+          Nenhum projeto encontrado para o filtro selecionado
+        </div>
+      `;
+    }
     return null;
   }
 
   try {
     console.log("Aguardando dimensões válidas do container...");
     
-    // **CORREÇÃO PRINCIPAL: Aguardar container ter dimensões válidas**
+    // Aguardar container ter dimensões válidas
     const hasValidDimensions = await waitForContainerDimensions(container);
     
     if (!hasValidDimensions) {
       console.warn("Container não obteve dimensões válidas, prosseguindo mesmo assim...");
     }
+
+    // Destruir tooltips existentes
+    destroyTooltips(container);
 
     const clientes = [
       ...new Set(projetos.map((p) => p.client).filter(Boolean)),
@@ -508,47 +529,37 @@ export async function criarTimelineProjetos(container, projetos, config = {}) {
         let endDate = projeto.end
           ? moment(projeto.end)
           : startDate.clone().add(14, "days");
-        if (endDate.isBefore(startDate))
+        
+        if (endDate.isBefore(startDate)) {
           endDate = startDate.clone().add(1, "hour");
+        }
 
         let statusClass = "status-andamento";
         if (projeto.status === "Concluído") statusClass = "status-concluido";
         else if (projeto.status === "Atrasado") statusClass = "status-atrasado";
 
         const priority = projeto.priority?.toLowerCase() || "medium";
-        const priorityClass =
-          config.priorityClasses?.[priority] || config.priorityClasses?.medium || "task-priority-medium";
-
-        const tooltipContent = `
-            <div class="timeline-tooltip">
-              <h5>${projeto.name || "Projeto sem nome"}</h5>
-              <p><strong>Cliente:</strong> ${projeto.client || "N/A"}</p>
-              <p><strong>Time:</strong> ${
-                projeto.groups?.join(" / ") || "N/A"
-              }</p>
-              <p><strong>Período:</strong> ${startDate.format(
-                "DD/MM/YY"
-              )} - ${endDate.format("DD/MM/YY")}</p>
-              <p><strong>Status:</strong> <span class="status-badge ${statusClass}">${
-          projeto.status || "N/A"
-        }</span></p>
-              <p><strong>Progresso:</strong> ${projeto.progress || 0}%</p>
-              <p><strong>Prioridade:</strong> ${projeto.priority || "Média"}</p>
-            </div>`;
+        const priorityClass = `task-priority-${priority}`;
 
         return {
           id: idx,
-          content: `<strong>${
-            projeto.name || "Projeto sem nome"
-          }</strong><br>Equipe: ${projeto.groups?.join(", ") || "N/A"}`,
+          content: `
+            <div class="project-item-content">
+              <strong>${projeto.name || "Projeto sem nome"}</strong>
+              <div class="project-meta">
+                <span class="progress-indicator" style="width: ${projeto.progress || 0}%"></span>
+                <span class="teams">${projeto.groups?.join(", ") || "N/A"}</span>
+              </div>
+            </div>
+          `,
           start: startDate.toDate(),
           end: endDate.toDate(),
           group: projeto.client,
-          className: `${priorityClass} ${statusClass}`,
-          itemData: projeto,
+          className: `${priorityClass} ${statusClass} project-item`,
+          itemData: projeto, // Dados originais para o tooltip
           priorityClass: priorityClass,
           statusClass: statusClass,
-          tooltipContent: tooltipContent,
+          title: '' // Desabilitar tooltip nativo do vis.js
         };
       })
     );
@@ -556,7 +567,12 @@ export async function criarTimelineProjetos(container, projetos, config = {}) {
     const visGroups = new vis.DataSet(
       clientes.map((cliente) => ({
         id: cliente,
-        content: `<strong>${cliente}</strong>`,
+        content: `
+          <div class="client-group-label">
+            <i class="fas fa-building me-2"></i>
+            <strong>${cliente}</strong>
+          </div>
+        `,
         className: config.clientColors?.[cliente.toUpperCase()] || "",
       }))
     );
@@ -565,7 +581,7 @@ export async function criarTimelineProjetos(container, projetos, config = {}) {
       ...getTimelineOptions(),
       template: function (item, element, data) {
         if (!item || !item.itemData) return "";
-        return `<div class="task-label">${item.content}</div>`;
+        return item.content;
       },
       ...config.timelineOptions,
     };
@@ -573,18 +589,27 @@ export async function criarTimelineProjetos(container, projetos, config = {}) {
     console.log("Criando timeline de projetos...");
     const timeline = new vis.Timeline(container, items, visGroups, options);
 
-    // **CORREÇÃO: Aguardar renderização completa usando Promise**
+    // Aguardar renderização completa
     await new Promise(resolve => {
-      timeline.on('changed', resolve);
+      const onChanged = () => {
+        timeline.off('changed', onChanged);
+        resolve();
+      };
+      timeline.on('changed', onChanged);
+      
       // Fallback caso o evento 'changed' não dispare
-      setTimeout(resolve, 500);
+      setTimeout(resolve, 800);
     });
 
-    console.log("Timeline de projetos criada, configurando eventos e layout...");
+    console.log("Timeline de projetos criada, configurando eventos e efeitos modernos...");
 
-    configurarEventosTimeline(timeline, items);
+    // Configurar eventos e tooltips modernos
+    configurarEventosTimeline(timeline, items, 'project');
 
-    // **CORREÇÃO: Forçar refresh sequencial com verificações**
+    // Adicionar efeitos visuais modernos
+    addModernEffects(container);
+
+    // Forçar refresh sequencial com verificações
     await new Promise(resolve => {
       requestAnimationFrame(() => {
         timeline.redraw();
@@ -602,12 +627,17 @@ export async function criarTimelineProjetos(container, projetos, config = {}) {
 
   } catch (error) {
     console.error("Erro ao criar timeline de projetos:", error);
-    container.innerHTML = `<div class="alert alert-danger">Erro ao criar timeline: ${error.message}</div>`;
+    container.innerHTML = `
+      <div class="alert alert-danger m-3">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>Erro ao criar timeline:</strong> ${error.message}
+      </div>
+    `;
     return null;
   }
 }
 
-// Configurações globais compartilhadas
+// Configurações globais compartilhadas - MODERNIZADAS
 export const CONFIG = {
   priorityClasses: {
     high: "task-priority-high",
@@ -624,7 +654,25 @@ export const CONFIG = {
     COGNA: "cliente-cogna",
     ENGIE: "cliente-engie",
   },
+  animations: {
+    duration: 300,
+    easing: 'easeInOutQuad'
+  }
 };
 
-// Listener para resize da janela
-window.addEventListener("resize", stretchTimelineGroups);
+// Listener para resize da janela com debounce
+let resizeTimeout;
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    stretchTimelineGroups();
+  }, 150);
+});
+
+// Listener para mudança de orientação em dispositivos móveis
+window.addEventListener("orientationchange", () => {
+  setTimeout(() => {
+    stretchTimelineGroups();
+    window.dispatchEvent(new Event("resize"));
+  }, 300);
+});

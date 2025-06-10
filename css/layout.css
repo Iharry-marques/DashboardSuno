@@ -1,188 +1,271 @@
 /**
- * @file layout.css
- * @description Estilos de layout principal para o Dashboard de Tarefas.
+ * @file layout.css - MODERNIZADO
+ * @description Layout responsivo e moderno para o Dashboard SUNO
  * @project Dashboard de Tarefas - SUNO
  */
 
-/* -------------------------------------------------------------------------- */
-/* LAYOUT PRINCIPAL                          */
-/* -------------------------------------------------------------------------- */
+/* ========================================
+   LAYOUT PRINCIPAL MODERNO
+======================================== */
 
 .app-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  padding-top: 58px;
+  padding-top: var(--layout-header-height);
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  position: relative;
+  overflow-x: hidden;
 }
 
+.app-container::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(255, 200, 1, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
+}
 
+/* ========================================
+   HEADER MODERNO GLASSMORPHISM
+======================================== */
 
 .app-header {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  z-index: 1000;
-  background-color: #2f333a; /* Cor preta para o cabeçalho */
-  color: #fff; /* Texto branco */
-  /* Reduzir padding vertical significativamente */
-  padding: 0.5rem 1rem; /* Reduzido de 1.5rem 1rem */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Adiciona sombra para destaque */
-  /* Usar Flexbox para alinhar tudo em uma linha */
+  right: 0;
+  z-index: var(--z-fixed);
+  background: rgba(15, 23, 42, 0.9);
+  backdrop-filter: blur(30px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: var(--space-4) var(--space-6);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap; /* Permitir quebra em telas muito pequenas */
-  gap: 1rem; /* Espaçamento entre grupos principais (logo, nav, filtros, controles) */
+  transition: var(--transition-base);
+  box-shadow: var(--shadow-xl);
+  height: var(--layout-header-height);
 }
 
-/* Remover a necessidade de container-fluid interno com flex-column */
-/* .app-header .container-fluid { ... } */
+.app-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 200, 1, 0.08) 0%, rgba(255, 200, 1, 0.02) 100%);
+  pointer-events: none;
+}
 
-/* Agrupar logo e navegação */
+.app-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 200, 1, 0.5), transparent);
+}
+
+/* Scroll Effect */
+.app-header.scrolled {
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(40px);
+  box-shadow: var(--shadow-2xl);
+}
+
 .header-left {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: var(--space-8);
+  position: relative;
+  z-index: 2;
 }
 
-/* Agrupar filtros e controles */
 .header-right {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap; /* Permitir quebra dos filtros/controles */
+  gap: var(--space-4);
+  position: relative;
+  z-index: 2;
 }
 
-/* Remover a estrutura header-top e header-filters */
-/* .header-top { ... } */
-/* .header-filters { ... } */
+/* ========================================
+   MAIN CONTENT MODERNO
+======================================== */
 
-.nav-tabs-header {
-  gap: 0.5rem; /* Ajustar gap das abas */
-}
-
-.header-controls {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem; /* Ajustar gap dos controles */
-}
-
-.header-controls .btn {
-  min-width: auto; /* Remover min-width */
-  min-height: auto; /* Remover min-height */
-  padding: 0.25rem 0.6rem; /* Ajustar padding dos botões de controle */
-}
-
-/* Estilos para os filtros diretamente dentro do header-right */
-.header-right select,
-.header-right fieldset {
-  margin-bottom: 0; /* Remover margem inferior */
-  height: 32px; /* Definir altura fixa para selects */
-  padding-top: 0.25rem;
-  padding-bottom: 0.25rem;
-}
-
-.header-right fieldset {
-  padding-left: 0.5rem;
-}
-
-/* Remover estilos antigos de filter-card */
-/* .app-header .filter-card { ... } */
-
-.app-footer {
-  background-color: #222;
-  color: white;
-  padding: 1rem 0;
-  margin-top: auto;  /* Isto empurra o footer para baixo! */
-  text-align: center;
-}
-
-
-/* Container principal de conteúdo */
 #main-content {
-  flex: 1 1 auto;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 0;  /* ESSENCIAL! */
-  height: 100%;
+  min-height: 0;
+  padding: var(--space-8) var(--space-6);
+  max-width: var(--layout-content-max-width);
+  margin: 0 auto;
+  width: 100%;
+  position: relative;
 }
 
+#main-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 4px;
+  background: var(--suno-gradient);
+  border-radius: var(--radius-full);
+  opacity: 0.6;
+}
 
-/* Layout de grid para seções */
+/* ========================================
+   GANTT LAYOUT OTIMIZADO
+======================================== */
+
+.gantt-row {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  gap: var(--space-4);
+}
+
+.gantt-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* ========================================
+   TIMELINE CONTAINER MODERNO
+======================================== */
+
+.timeline-container {
+  flex: 1;
+  min-height: 500px;
+  height: calc(100vh - 300px);
+  width: 100%;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--surface-primary);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+}
+
+.timeline-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--suno-gradient);
+  opacity: 0.7;
+  z-index: 1;
+}
+
+/* ========================================
+   FOOTER MODERNO
+======================================== */
+
+.app-footer {
+  background: linear-gradient(135deg, var(--surface-dark), var(--surface-dark-secondary));
+  color: var(--text-inverse);
+  padding: var(--space-8) var(--space-6);
+  text-align: center;
+  margin-top: auto;
+  position: relative;
+  overflow: hidden;
+}
+
+.app-footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 200, 1, 0.5), transparent);
+}
+
+.app-footer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at center top, rgba(255, 200, 1, 0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.app-footer p {
+  margin: 0;
+  font-weight: var(--font-weight-medium);
+  color: rgba(255, 255, 255, 0.9);
+  position: relative;
+  z-index: 2;
+}
+
+.app-footer #ano-atual {
+  color: var(--suno-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* ========================================
+   GRID SYSTEMS MODERNOS
+======================================== */
+
 .grid-layout {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--space-6);
+  padding: var(--space-4);
 }
 
-/* Layout de coluna única */
 .single-column {
-  max-width: 1200px;
+  max-width: var(--layout-content-max-width);
   margin: 0 auto;
+  padding: 0 var(--space-4);
 }
 
-/* Layout de duas colunas */
 .two-columns {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: var(--space-6);
+  align-items: start;
 }
 
-@media (max-width: 768px) {
-  .two-columns {
-    grid-template-columns: 1fr;
-  }
-  /* Ajustes de responsividade para o header */
-  .app-header {
-    justify-content: center; /* Centralizar em telas menores */
-    padding-top: 0.8rem;
-    padding-bottom: 0.8rem;
-  }
-  .header-left {
-    width: 100%;
-    justify-content: space-between;
-    margin-bottom: 0.5rem;
-  }
-  .header-right {
-    width: 100%;
-    justify-content: center;
-  }
-}
-
-@media (max-width: 576px) {
-  .nav-tabs-header {
-    font-size: 0.9rem; /* Reduzir fonte das abas */
-    gap: 0.3rem;
-  }
-  .header-right select {
-     flex-grow: 1; /* Permitir que selects cresçam */
-  }
-}
-
-
-/* Layout de três colunas */
 .three-columns {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 1rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-6);
+  align-items: start;
 }
 
-@media (max-width: 992px) {
-  .three-columns {
-    grid-template-columns: 1fr 1fr;
-  }
-  /* Ajustes de responsividade para o header */
-  .app-header {
-      gap: 0.5rem; /* Reduzir gap geral em telas médias */
-  }
-  .header-right {
-      gap: 0.5rem; /* Reduzir gap dos filtros/controles */
-  }
-}
+/* ========================================
+   FLEXBOX UTILITIES MODERNOS
+======================================== */
 
-
-/* Containers flexíveis */
 .flex-container {
   display: flex;
 }
@@ -199,8 +282,20 @@
   flex-wrap: wrap;
 }
 
+.flex-nowrap {
+  flex-wrap: nowrap;
+}
+
+.justify-start {
+  justify-content: flex-start;
+}
+
 .justify-center {
   justify-content: center;
+}
+
+.justify-end {
+  justify-content: flex-end;
 }
 
 .justify-between {
@@ -211,124 +306,393 @@
   justify-content: space-around;
 }
 
-.align-center {
-  align-items: center;
+.justify-evenly {
+  justify-content: space-evenly;
 }
 
 .align-start {
   align-items: flex-start;
 }
 
+.align-center {
+  align-items: center;
+}
+
 .align-end {
   align-items: flex-end;
 }
 
-/* Ajuste para gantt-row e gantt-col para ocupar 100% do pai (#main-content) */
-.gantt-row, .gantt-col {
-  flex: 1 1 auto;
-  min-height: 0;
-  height: 100%;
-  width: 100%;
-  display: flex;        /* Torna .gantt-col flexível */
-  flex-direction: column;
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+.align-stretch {
+  align-items: stretch;
 }
 
+.align-baseline {
+  align-items: baseline;
+}
 
-/* Espaçamentos */
-.gap-1 { gap: 0.25rem; }
-.gap-2 { gap: 0.5rem; }
-.gap-3 { gap: var(--gap-base); } /* Updated to use base gap variable */
-.gap-4 { gap: 1.5rem; }
-.gap-5 { gap: 3rem; }
+/* ========================================
+   SPACING UTILITIES MODERNOS
+======================================== */
+
+/* Gaps */
+.gap-0 { gap: var(--space-0); }
+.gap-1 { gap: var(--space-1); }
+.gap-2 { gap: var(--space-2); }
+.gap-3 { gap: var(--space-3); }
+.gap-4 { gap: var(--space-4); }
+.gap-5 { gap: var(--space-5); }
+.gap-6 { gap: var(--space-6); }
+.gap-8 { gap: var(--space-8); }
+.gap-10 { gap: var(--space-10); }
 
 /* Margens */
-.m-1 { margin: 0.25rem; }
-.m-2 { margin: 0.5rem; }
-.m-3 { margin: 1rem; }
-.m-4 { margin: 1.5rem; }
-.m-5 { margin: 3rem; }
+.m-auto { margin: auto; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.my-auto { margin-top: auto; margin-bottom: auto; }
 
-.my-1 { margin-top: 0.25rem; margin-bottom: 0.25rem; }
-.my-2 { margin-top: 0.5rem; margin-bottom: 0.5rem; }
-.my-3 { margin-top: 1rem; margin-bottom: 1rem; }
-.my-4 { margin-top: 1.5rem; margin-bottom: 1.5rem; }
-.my-5 { margin-top: 3rem; margin-bottom: 3rem; }
+.ml-auto { margin-left: auto; }
+.mr-auto { margin-right: auto; }
+.mt-auto { margin-top: auto; }
+.mb-auto { margin-bottom: auto; }
 
-.mx-1 { margin-left: 0.25rem; margin-right: 0.25rem; }
-.mx-2 { margin-left: 0.5rem; margin-right: 0.5rem; }
-.mx-3 { margin-left: 1rem; margin-right: 1rem; }
-.mx-4 { margin-left: 1.5rem; margin-right: 1.5rem; }
-.mx-5 { margin-left: 3rem; margin-right: 3rem; }
+/* Paddings extras */
+.p-7 { padding: var(--space-7); }
+.p-8 { padding: var(--space-8); }
+.p-9 { padding: var(--space-9); }
+.p-10 { padding: var(--space-10); }
+.p-12 { padding: var(--space-12); }
 
-/* Paddings */
-.p-1 { padding: 0.25rem; }
-.p-2 { padding: 0.5rem; }
-.p-3 { padding: 1rem; }
-.p-4 { padding: 1.5rem; }
-.p-5 { padding: 3rem; }
+.px-7 { padding-left: var(--space-7); padding-right: var(--space-7); }
+.px-8 { padding-left: var(--space-8); padding-right: var(--space-8); }
+.py-7 { padding-top: var(--space-7); padding-bottom: var(--space-7); }
+.py-8 { padding-top: var(--space-8); padding-bottom: var(--space-8); }
 
-.py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
-.py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
-.py-3 { padding-top: 1rem; padding-bottom: 1rem; }
-.py-4 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
-.py-5 { padding-top: 3rem; padding-bottom: 3rem; }
+/* ========================================
+   CONTAINER UTILITIES
+======================================== */
 
-.px-1 { padding-left: 0.25rem; padding-right: 0.25rem; }
-.px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
-.px-3 { padding-left: 1rem; padding-right: 1rem; }
-.px-4 { padding-left: 1.5rem; padding-right: 1.5rem; }
-.px-5 { padding-left: 3rem; padding-right: 3rem; }
-
-/* Containers específicos */
 .container-fluid {
   width: 100%;
-  padding-top: 0 !important;
-  padding-right: 15px;
-  padding-left: 15px;
+  padding-right: var(--space-4);
+  padding-left: var(--space-4);
   margin-right: auto;
   margin-left: auto;
 }
 
-.row { /* Bootstrap .row */
+.container {
+  width: 100%;
+  max-width: var(--layout-content-max-width);
+  padding-right: var(--space-4);
+  padding-left: var(--space-4);
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.row {
   display: flex;
   flex-wrap: wrap;
-  margin-right: -15px; /* Para compensar padding dos .col-* */
-  margin-left: -15px;  /* Para compensar padding dos .col-* */
+  margin-right: calc(var(--space-4) * -0.5);
+  margin-left: calc(var(--space-4) * -0.5);
 }
 
-.col-12 { /* Bootstrap .col-12 */
+.col {
+  flex: 1 0 0%;
+  padding-right: calc(var(--space-4) * 0.5);
+  padding-left: calc(var(--space-4) * 0.5);
+}
+
+.col-12 {
   flex: 0 0 100%;
   max-width: 100%;
-  padding-right: 15px;
-  padding-left: 15px;
-  padding-top: 25px; /* Espaçamento customizado */
+  padding-right: calc(var(--space-4) * 0.5);
+  padding-left: calc(var(--space-4) * 0.5);
+  padding-top: var(--space-6);
 }
 
-.timeline-container {
-  min-width: 0 !important;
-  background: var(--card-bg, #fff);
+/* ========================================
+   OVERFLOW UTILITIES
+======================================== */
+
+.overflow-hidden { overflow: hidden; }
+.overflow-auto { overflow: auto; }
+.overflow-scroll { overflow: scroll; }
+.overflow-visible { overflow: visible; }
+
+.overflow-x-hidden { overflow-x: hidden; }
+.overflow-y-hidden { overflow-y: hidden; }
+.overflow-x-auto { overflow-x: auto; }
+.overflow-y-auto { overflow-y: auto; }
+
+/* ========================================
+   POSITION UTILITIES
+======================================== */
+
+.relative { position: relative; }
+.absolute { position: absolute; }
+.fixed { position: fixed; }
+.sticky { position: sticky; }
+
+.inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+.top-0 { top: 0; }
+.right-0 { right: 0; }
+.bottom-0 { bottom: 0; }
+.left-0 { left: 0; }
+
+/* ========================================
+   Z-INDEX UTILITIES
+======================================== */
+
+.z-0 { z-index: 0; }
+.z-10 { z-index: 10; }
+.z-20 { z-index: 20; }
+.z-30 { z-index: 30; }
+.z-40 { z-index: 40; }
+.z-50 { z-index: 50; }
+
+/* ========================================
+   RESPONSIVIDADE AVANÇADA
+======================================== */
+
+/* Small devices (landscape phones, 576px and up) */
+@media (min-width: 576px) {
+  .container {
+    max-width: 540px;
+  }
 }
 
-
-.cronograma-card {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  min-height: 0;
-  height: 100%;
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px) {
+  .container {
+    max-width: 720px;
+  }
+  
+  .two-columns {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .three-columns {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  #main-content {
+    padding: var(--space-10) var(--space-8);
+  }
 }
 
-
-
-
-/* Garante que os botões de zoom não afetem o cabeçalho (se o zoom de fonte for usado) */
-html {
-  font-size: 16px; /* Pode ser ajustado via JS se o zoom de fonte for desejado */
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 992px) {
+  .container {
+    max-width: 960px;
+  }
 }
 
-/* Remover margem inferior dos elementos do header */
-/* .app-header .form-select, ... { margin-bottom: 0.5rem; } */
+/* Extra large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+  .container {
+    max-width: var(--layout-content-max-width);
+  }
+}
 
+/* ========================================
+   MOBILE FIRST RESPONSIVE
+======================================== */
+
+@media (max-width: 767px) {
+  .app-header {
+    flex-direction: column;
+    height: auto;
+    padding: var(--space-4);
+    gap: var(--space-4);
+  }
+  
+  .app-container {
+    padding-top: 120px; /* Ajustar para header maior */
+  }
+  
+  .header-left,
+  .header-right {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .header-right {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  
+  .two-columns,
+  .three-columns {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+  
+  #main-content {
+    padding: var(--space-6) var(--space-4);
+  }
+  
+  .timeline-container {
+    height: calc(100vh - 380px);
+    min-height: 400px;
+  }
+  
+  .form-select {
+    min-width: 120px;
+    font-size: var(--font-size-xs);
+  }
+  
+  .nav-tabs-header {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .nav-link {
+    flex: 1;
+    justify-content: center;
+    min-width: 0;
+  }
+  
+  .nav-link span {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-header {
+    padding: var(--space-3);
+  }
+  
+  .app-container {
+    padding-top: 140px;
+  }
+  
+  #main-content {
+    padding: var(--space-4) var(--space-3);
+  }
+  
+  .header-right {
+    gap: var(--space-1);
+  }
+  
+  .form-select {
+    min-width: 100px;
+    padding: var(--space-1-5) var(--space-2);
+  }
+  
+  .btn-sm {
+    padding: var(--space-1) var(--space-2);
+    font-size: 0.7rem;
+  }
+  
+  .timeline-container {
+    height: calc(100vh - 400px);
+    min-height: 350px;
+  }
+  
+  .logo-text {
+    font-size: var(--font-size-xl);
+  }
+  
+  .logo-circle {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* ========================================
+   LANDSCAPE ORIENTATION
+======================================== */
+
+@media (orientation: landscape) and (max-height: 600px) {
+  .timeline-container {
+    height: calc(100vh - 200px);
+    min-height: 300px;
+  }
+  
+  .app-header {
+    padding: var(--space-2) var(--space-4);
+  }
+  
+  .app-container {
+    padding-top: 60px;
+  }
+}
+
+/* ========================================
+   HIGH DPI DISPLAYS
+======================================== */
+
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .logo-circle::before {
+    font-size: 22px;
+  }
+  
+  .loading-spinner {
+    border-width: 3px;
+  }
+}
+
+/* ========================================
+   PRINT STYLES
+======================================== */
+
+@media print {
+  .app-header,
+  .app-footer,
+  .timeline-controls,
+  .btn,
+  .form-select {
+    display: none !important;
+  }
+  
+  .app-container {
+    padding-top: 0;
+    background: white !important;
+  }
+  
+  #main-content {
+    padding: 0;
+    max-width: none;
+  }
+  
+  .timeline-container {
+    height: auto !important;
+    min-height: auto !important;
+    box-shadow: none !important;
+    border: 1px solid #000;
+  }
+  
+  .card {
+    box-shadow: none !important;
+    border: 1px solid #ccc;
+  }
+  
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+/* ========================================
+   DARK MODE SUPPORT (Futuro)
+======================================== */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Será implementado em futuras versões se necessário */
+  }
+}
+
+/* ========================================
+   MOTION PREFERENCES
+======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
