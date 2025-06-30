@@ -77,11 +77,13 @@ export function preprocessarDados(item) {
   if (!processado.project && item.JobTitle) {
     processado.project = item.JobTitle;
   }
-  if (!processado.start && item.CurrentDueDate) {
-    processado.start = item.CurrentDueDate;
+  if (!processado.start) {
+    processado.start =
+      item.CurrentDueDate || item.TaskCreationDate || item.JobCreationDate;
   }
-  if (!processado.end && item.CurrentDueDate) {
-    processado.end = item.CurrentDueDate;
+  if (!processado.end) {
+    processado.end =
+      item.CurrentDueDate || item.TaskClosingDate || item.FirstDueDate || processado.start;
   }
   if (!processado.responsible && item.TaskOwnerDisplayName) {
     processado.responsible = item.TaskOwnerDisplayName;
@@ -98,6 +100,9 @@ export function preprocessarDados(item) {
     } else if (item.TipoTarefa) {
       processado.tipo = item.TipoTarefa;
     }
+  }
+  if (!processado.parentId && item.ParentTaskID) {
+    processado.parentId = item.ParentTaskID;
   }
   if (!processado.creation_date && item.TaskCreationDate) {
     processado.creation_date = item.TaskCreationDate;
