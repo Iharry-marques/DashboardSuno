@@ -40,6 +40,42 @@ O projeto segue uma estrutura modular para facilitar a manutenção e escalabili
 |-- README.md                # Este arquivo
 ```
 
+## Formato do arquivo `dados.json`
+
+O dashboard agora utiliza o resultado de uma consulta no Monday.com focada nas
+tarefas do time de **Criação**. Os campos mais importantes são:
+
+| Campo no JSON           | Descrição                                   |
+|-------------------------|----------------------------------------------|
+| `UniqueTaskID`          | Identificador único da tarefa/subtarefa      |
+| `TaskTitle`             | Nome da tarefa                               |
+| `ClientNickname`        | Nome do cliente                              |
+| `JobTitle`              | Nome do projeto                              |
+| `CurrentDueDate`        | Data de entrega (utilizada como início/fim)   |
+| `TaskOwnerDisplayName`  | Responsável pela tarefa                      |
+| `TaskOwnerGroupName`    | Caminho completo do grupo (ex: `Criação / ...`) |
+| `PipelineStepTitle`     | Status atual                                 |
+| `ParentTaskID`          | Se presente, indica que é uma subtarefa       |
+
+Campos adicionais do Monday são preservados no JSON, mas os acima são os que o
+`dataService.js` utiliza para normalizar as informações exibidas nas telas.
+
+Exemplo simplificado de um item no `dados.json`:
+
+```json
+{
+  "UniqueTaskID": "2130579_sub",
+  "TaskTitle": "Americanas | Evento | ECBR 2025",
+  "ClientNickname": "AMERICANAS",
+  "JobTitle": "Institucional",
+  "CurrentDueDate": "2025-06-23 03:00:00.000000 UTC",
+  "TaskOwnerDisplayName": "Marco Monteiro",
+  "TaskOwnerGroupName": "Criação / Bruno Prosperi / Marco Monteiro",
+  "PipelineStepTitle": "Em Aprovação Cliente",
+  "ParentTaskID": "2130563"
+}
+```
+
 ## Como Rodar o Projeto
 
 Como este é um projeto front-end estático (HTML, CSS, JavaScript) que consome um arquivo JSON local, ele pode ser rodado diretamente em um navegador web:

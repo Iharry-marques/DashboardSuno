@@ -36,54 +36,6 @@ export function mostrarLoading(container, mostrar) {
 }
 
 /**
- * Marca o container da timeline como carregado para aplicar estilos CSS
- * @param {HTMLElement} container - Container da timeline
- */
-export function marcarTimelineCarregada(container) {
-  if (!container) return;
-  
-  // Adiciona classe para indicar que a timeline foi carregada
-  container.classList.add('timeline-loaded');
-  
-  // Força um reflow para aplicar os estilos
-  void container.offsetWidth;
-  
-  console.log("Timeline marcada como carregada");
-}
-
-/**
- * Verifica se o container tem dimensões válidas
- * @param {HTMLElement} container - Container a ser verificado
- * @returns {boolean} Se o container tem dimensões válidas
- */
-export function verificarDimensoesContainer(container) {
-  if (!container) return false;
-  
-  const rect = container.getBoundingClientRect();
-  const temDimensoes = rect.width > 100 && rect.height > 100;
-  
-  console.log(`Container dimensions: ${rect.width}x${rect.height}, válido: ${temDimensoes}`);
-  
-  return temDimensoes;
-}
-
-/**
- * Força um refresh visual do container
- * @param {HTMLElement} container - Container a ser atualizado
- */
-export function forcarRefreshContainer(container) {
-  if (!container) return;
-  
-  // Força reflow e repaint
-  container.style.display = 'none';
-  void container.offsetHeight; // Força reflow
-  container.style.display = '';
-  
-  // Dispara evento de resize para bibliotecas externas
-  window.dispatchEvent(new Event('resize'));
-}
-
-/**
  * Exibe uma notificação toast
  * @param {string} titulo - Título da notificação
  * @param {string} mensagem - Texto da mensagem
@@ -119,80 +71,6 @@ export function mostrarNotificacao(titulo, mensagem, tipo = "info") {
   toastElement.addEventListener("hidden.bs.toast", () => {
     toastElement.remove();
   });
-}
-
-/**
- * Cria um modal dinâmico
- * @param {string} titulo - Título do modal
- * @param {string} conteudo - Conteúdo HTML do corpo do modal
- * @param {Function} onClose - Callback opcional ao fechar o modal
- * @returns {HTMLElement} Elemento do modal criado
- */
-export function criarModal(titulo, conteudo, onClose = null) {
-  const modal = document.createElement('div');
-  modal.className = 'modal fade show';
-  modal.style.display = 'block';
-  modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
-  
-  modal.innerHTML = `
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">${titulo}</h5>
-          <button type="button" class="btn-close" data-action="fechar"></button>
-        </div>
-        <div class="modal-body">${conteudo}</div>
-        <div class="modal-footer">
-          <button class="btn btn-secondary" data-action="fechar">Fechar</button>
-        </div>
-      </div>
-    </div>`;
-  
-  document.body.appendChild(modal);
-  
-  // Configurar eventos de fechamento
-  const fecharModal = () => {
-    modal.remove();
-    if (onClose && typeof onClose === 'function') {
-      onClose();
-    }
-  };
-  
-  modal.querySelectorAll('[data-action="fechar"]').forEach(btn => {
-    btn.addEventListener('click', fecharModal);
-  });
-  
-  return modal;
-}
-
-/**
- * Cria um alerta na página
- * @param {string} mensagem - Mensagem do alerta
- * @param {string} tipo - Tipo do alerta: "info", "success", "warning" ou "error"
- * @param {HTMLElement} container - Container onde o alerta será inserido
- * @returns {HTMLElement} Elemento do alerta criado
- */
-export function criarAlerta(mensagem, tipo = "info", container = document.body) {
-  const tipoClasse = tipo === "error" ? "danger" : 
-                    tipo === "success" ? "success" :
-                    tipo === "warning" ? "warning" : "info";
-  
-  const alerta = document.createElement('div');
-  alerta.className = `alert alert-${tipoClasse} alert-dismissible fade show`;
-  alerta.innerHTML = `
-    ${mensagem}
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
-  `;
-  
-  container.appendChild(alerta);
-  
-  // Auto-remover após 5 segundos
-  setTimeout(() => {
-    alerta.classList.remove('show');
-    setTimeout(() => alerta.remove(), 150);
-  }, 5000);
-  
-  return alerta;
 }
 
 /**
