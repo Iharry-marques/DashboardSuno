@@ -5,19 +5,19 @@
  */
 
 /**
- * Estrutura esperada para cada item no arquivo dados.json:
+ * Estrutura esperada para cada item no arquivo dados.json.
+ * O projeto aceita tanto o formato antigo quanto o novo proveniente da query
+ * do Monday. Abaixo os campos principais considerados no processamento:
  * {
- *   "id": number | string,            // Identificador único da tarefa/item
- *   "name": string,                   // Nome da tarefa
- *   "client": string,                 // Nome do cliente
- *   "project": string,                // Nome do projeto
- *   "start": string,                  // Data de início (formato ISO 8601 ou compatível com moment.js)
- *   "end": string | null,             // Data de fim (formato ISO 8601 ou compatível com moment.js), pode ser null
- *   "responsible": string | null,     // Nome do responsável pela tarefa
- *   "group_subgroup": string | null,  // Caminho completo do grupo/subgrupo (ex: "Criação / Equipe A")
- *   "PipelineStepTitle": string,      // Status da tarefa (ex: "Não iniciada", "Backlog", "Em Produção", "Concluída")
- *   "tipo": string | null             // Tipo do item, geralmente "Tarefa" ou "Subtarefa"
- *   // Outros campos podem existir, mas os acima são os principais utilizados.
+ *   "id" / "UniqueTaskID"     : Identificador único da tarefa
+ *   "TaskTitle" / "name"      : Nome da tarefa
+ *   "ClientNickname"          : Cliente
+ *   "JobTitle"                : Projeto
+ *   "CurrentDueDate"          : Data de entrega (usada como start/end)
+ *   "TaskOwnerDisplayName"    : Responsável
+ *   "TaskOwnerGroupName"      : Caminho completo do grupo/subgrupo
+ *   "PipelineStepTitle"       : Status da tarefa
+ *   "ParentTaskID"            : Se definido indica subtarefa
  * }
  */
 
@@ -63,15 +63,58 @@ export function preprocessarDados(item) {
   }
 
   const processado = { ...item };
-    if (processado.start) {
+
+  // Mapeamento para o novo formato de dados
+  if (!processado.id && item.UniqueTaskID) {
+    processado.id = item.UniqueTaskID;
+  }
+  if (!processado.name && item.TaskTitle) {
+    processado.name = item.TaskTitle;
+  }
+  if (!processado.client && (item.ClientNickname || item.DisplayName)) {
+    processado.client = item.ClientNickname || item.DisplayName;
+  }
+  if (!processado.project && item.JobTitle) {
+    processado.project = item.JobTitle;
+  }
+  if (!processado.start && item.CurrentDueDate) {
+    processado.start = item.CurrentDueDate;
+  }
+  if (!processado.end && item.CurrentDueDate) {
+    processado.end = item.CurrentDueDate;
+  }
+  if (!processado.responsible && item.TaskOwnerDisplayName) {
+    processado.responsible = item.TaskOwnerDisplayName;
+  }
+  if (!processado.group_subgroup && item.TaskOwnerGroupName) {
+    processado.group_subgroup = item.TaskOwnerGroupName;
+  }
+  if (!processado.PipelineStepTitle && item.PipelineStepTitle) {
+    processado.PipelineStepTitle = item.PipelineStepTitle;
+  }
+  if (!processado.tipo) {
+    if (item.ParentTaskID) {
+      processado.tipo = 'Subtarefa';
+    } else if (item.TipoTarefa) {
+      processado.tipo = item.TipoTarefa;
+    }
+  }
+  if (!processado.creation_date && item.TaskCreationDate) {
+    processado.creation_date = item.TaskCreationDate;
+  }
+  if (!processado.modification_date && item.ModificationDate) {
+    processado.modification_date = item.ModificationDate;
+  }
+
+  if (processado.start) {
     processado.start = processado.start
-      .replace(" UTC", "Z")
-      .replace(" ", "T");
+      .replace(' UTC', 'Z')
+      .replace(' ', 'T');
   }
   if (processado.end) {
     processado.end = processado.end
-      .replace(" UTC", "Z")
-      .replace(" ", "T");
+      .replace(' UTC', 'Z')
+      .replace(' ', 'T');
   }
 
   // Mapear prioridade com base no status (PipelineStepTitle)
