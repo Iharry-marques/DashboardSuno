@@ -24,7 +24,17 @@ const defaultTooltipConfig = {
   hideOnClick: false,
   trigger: 'mouseenter focus click',
   appendTo: () => document.body,
-  zIndex: 10000
+  zIndex: 10000,
+  // NOVO: Callback para adicionar funcionalidade ao tooltip quando ele é exibido
+  onShow(instance) {
+    // Adiciona um listener para o botão de fechar dentro do tooltip
+    const closeBtn = instance.popper.querySelector('.tooltip-close-btn');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        instance.hide();
+      });
+    }
+  },
 };
 
 /**
@@ -43,6 +53,8 @@ const tooltipTemplates = {
         <div class="tooltip-priority priority-${item.Priority?.toLowerCase() || 'medium'}">
           ${getPriorityIcon(item.Priority)} ${getPriorityText(item.Priority)}
         </div>
+        // NOVO: Botão de fechar adicionado
+        <button class="tooltip-close-btn" title="Fechar">&times;</button>
       </div>
       
       <div class="tooltip-content">
@@ -121,6 +133,8 @@ const tooltipTemplates = {
           </div>
           <span class="progress-text">${projeto.progress || 0}%</span>
         </div>
+        // NOVO: Botão de fechar adicionado
+        <button class="tooltip-close-btn" title="Fechar">&times;</button>
       </div>
       
       <div class="tooltip-content">
@@ -235,7 +249,7 @@ function getStatusClass(status) {
 }
 
 /**
- * Cria CSS customizado para tooltips modernos
+ * Cria um CSS customizado para tooltips modernos
  */
 function injectTooltipStyles() {
   if (document.querySelector('#modern-tooltip-styles')) return;
@@ -285,9 +299,32 @@ function injectTooltipStyles() {
       }
       
       .tooltip-header {
+        position: relative; /* NOVO: Para posicionar o botão de fechar */
         padding: 16px 20px 12px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         background: linear-gradient(135deg, rgba(255, 200, 1, 0.1), rgba(255, 200, 1, 0.05));
+      }
+
+      /* NOVO: Estilo do botão de fechar */
+      .tooltip-close-btn {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        color: white;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        font-size: 16px;
+        line-height: 24px;
+        text-align: center;
+        cursor: pointer;
+        transition: background 0.2s ease;
+      }
+
+      .tooltip-close-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
       }
       
       .tooltip-title {
@@ -296,6 +333,7 @@ function injectTooltipStyles() {
         color: #ffffff;
         margin-bottom: 8px;
         line-height: 1.4;
+        padding-right: 20px; /* Espaço para o botão de fechar */
       }
       
       .tooltip-priority {
