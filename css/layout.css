@@ -109,7 +109,7 @@
   flex-direction: column;
   min-height: 0;
   padding: var(--space-8) var(--space-6);
-  max-width: var(--layout-content-max-width);
+  max-width: 95%; /* Aumentado para ocupar mais espaço horizontal */
   margin: 0 auto;
   width: 100%;
   position: relative;
@@ -161,8 +161,7 @@
 
 .timeline-container {
   flex: 1;
-  min-height: 500px;
-  height: calc(100vh - 300px);
+  /* min-height e height removidos para permitir que o conteúdo defina a altura */
   width: 100%;
   border-radius: var(--radius-lg);
   overflow: hidden;

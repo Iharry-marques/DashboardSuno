@@ -45,8 +45,7 @@
 .timeline-container,
 #timeline.timeline-container {
   flex: 1 !important;
-  min-height: 500px;
-  height: calc(100vh - 280px) !important;
+  /* min-height e height removidos para um layout mais flexível */
   width: 100% !important;
   background: var(--timeline-bg);
   border-radius: var(--radius-lg);
@@ -312,16 +311,15 @@
 ======================================== */
 
 .vis-item .vis-item-content {
-  padding: 0 var(--space-3) !important;
+  padding: var(--timeline-item-padding);
+  font-size: 12px; /* Reduzido de 13px para 12px */
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: var(--font-size-xs) !important;
-  line-height: calc(var(--timeline-item-height) - 2px) !important;
   display: block;
-  height: 100%;
-  color: inherit !important;
-  font-weight: var(--font-weight-medium) !important;
+  text-align: left;
 }
 
 .vis-item-content b,

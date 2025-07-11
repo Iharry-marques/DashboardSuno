@@ -62,7 +62,24 @@ export function preprocessarDados(item) {
     return {}; // Retorna objeto vazio ou lança erro, dependendo da política
   }
 
-  const processado = { ...item };
+  // Mapeia os campos do novo JSON para a estrutura que a aplicação espera
+  const processado = {
+    id: item.UniqueTaskID,
+    name: item.TaskTitle,
+    client: item.ClientNickname,
+    project: item.JobTitle,
+    start: item.TaskCreationDate,
+    end: item.CurrentDueDate, // Usar CurrentDueDate para data de fim
+    responsible: item.TaskOwnerDisplayName,
+    group_subgroup: item.TaskOwnerGroupName, // Mapeado do novo campo
+    PipelineStepTitle: item.PipelineStepTitle,
+    tipo: item.TipoTarefa,
+    ParentTaskID: item.ParentTaskID, // Mantem para hierarquia
+    // Adiciona outros campos originais que podem ser úteis
+    ...item 
+  };
+
+  // Tratamento de data/hora: remove " UTC" e substitui espaço por "T" para compatibilidade com new Date()
     if (processado.start) {
     processado.start = processado.start
       .replace(" UTC", "Z")
@@ -84,54 +101,16 @@ export function preprocessarDados(item) {
   // Define prioridade baseada no status, com 'medium' como padrão
   processado.Priority = statusPriority[processado.PipelineStepTitle] || "medium";
 
-  // Lista de grupos principais válidos (usada para extrair TaskOwnerGroup)
-  const gruposPrincipais = [
-    "Criação",
-    "Mídia",
-    "Produção",
-    "Operações",
-    "BI",
-    "Estratégia",
-  ];
-
-  // Extração e normalização do Grupo Principal (TaskOwnerGroup) e Caminho Completo (TaskOwnerFullPath)
-  let grupo = undefined;
-  let caminhoCompleto = processado.group_subgroup || ""; // Usa o campo group_subgroup
-  processado.TaskOwnerFullPath = caminhoCompleto; // Armazena o caminho original
-
-  if (caminhoCompleto) {
-    // Tratamento de casos especiais (ex: "Ana Luisa Andre" pertence a "Produção")
-    if (caminhoCompleto.trim() === "Ana Luisa Andre") {
-      grupo = "Produção";
-    } else {
-      const partes = caminhoCompleto.split("/").map((p) => p.trim());
-      if (partes.length > 0) {
-        // Verifica se a primeira parte é um grupo principal conhecido
-        if (gruposPrincipais.includes(partes[0])) {
-          grupo = partes[0];
-        } 
-        // Tratamento de casos especiais onde o grupo principal não está no início
-        else if (partes[0] === "Bruno Prosperi") {
-          grupo = "Criação";
-        } else if (partes[0] === "Carol") {
-          grupo = "Operações";
-        } else {
-          // Se não reconhecido, marca como "Outros" ou loga um aviso
-          console.warn(
-            `Grupo não reconhecido ou formato inesperado: ${partes[0]} em '${caminhoCompleto}'`
-          );
-          grupo = "Outros"; // Ou pode ser null/undefined dependendo da necessidade
-        }
-      }
-    }
-  }
-  processado.TaskOwnerGroup = grupo; // Armazena o grupo principal extraído
+  // Como todos os dados agora são da equipe de Criação, definimos o grupo diretamente.
+  processado.TaskOwnerGroup = "Criação";
+  // O caminho completo pode ser útil para subgrupos, então o mantemos.
+  processado.TaskOwnerFullPath = processado.group_subgroup || "Criação";
 
   // Normalizar datas: Garante que 'start' e 'end' existam e estejam em formato ISO
   // Se 'start' não existir, usa a data atual como padrão.
   processado.RequestDate = processado.start ? moment(processado.start).toISOString() : new Date().toISOString();
-  // Se 'end' não existir, calcula 3 dias após o início.
-  processado.TaskClosingDate = processado.end ? moment(processado.end).toISOString() : moment(processado.RequestDate).add(3, "days").toISOString();
+  // Se 'end' não existir, usa a data de início.
+  processado.TaskClosingDate = processado.end ? moment(processado.end).toISOString() : moment(processado.RequestDate).toISOString();
   // CurrentDueDate parece ser um sinônimo de TaskClosingDate neste contexto.
   processado.CurrentDueDate = processado.TaskClosingDate;
 

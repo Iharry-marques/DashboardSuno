@@ -59,15 +59,8 @@ export function preencherSelectGrupos(dados, selectId = 'grupo-select') {
   // Suporta múltiplos IDs (grupo-select,grupo-principal-select)
   const ids = selectId.split(',').map(id => id.trim());
 
-  // Lista de grupos principais válidos
-  const gruposPrincipais = [
-    "Criação",
-    "Mídia",
-    "Produção",
-    "Operações",
-    "BI",
-    "Estratégia",
-  ];
+  // Extrai os grupos únicos diretamente dos dados
+  const grupos = [...new Set(dados.map(item => item.TaskOwnerGroup).filter(Boolean))].sort();
 
   // Preencher cada select encontrado
   ids.forEach(id => {
@@ -77,11 +70,9 @@ export function preencherSelectGrupos(dados, selectId = 'grupo-select') {
     // Limpar e adicionar opção "Todos"
     select.innerHTML = '<option value="todos">Todos</option>';
 
-    // Adicionar apenas grupos que existem nos dados
-    gruposPrincipais.forEach(grupo => {
-      if (dados.some(item => item.TaskOwnerGroup === grupo)) {
-        select.add(new Option(grupo, grupo));
-      }
+    // Adicionar grupos que existem nos dados
+    grupos.forEach(grupo => {
+      select.add(new Option(grupo, grupo));
     });
   });
 }

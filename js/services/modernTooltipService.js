@@ -53,7 +53,6 @@ const tooltipTemplates = {
         <div class="tooltip-priority priority-${item.Priority?.toLowerCase() || 'medium'}">
           ${getPriorityIcon(item.Priority)} ${getPriorityText(item.Priority)}
         </div>
-        // NOVO: Botão de fechar adicionado
         <button class="tooltip-close-btn" title="Fechar">&times;</button>
       </div>
       
@@ -133,7 +132,6 @@ const tooltipTemplates = {
           </div>
           <span class="progress-text">${projeto.progress || 0}%</span>
         </div>
-        // NOVO: Botão de fechar adicionado
         <button class="tooltip-close-btn" title="Fechar">&times;</button>
       </div>
       
@@ -252,40 +250,40 @@ function getStatusClass(status) {
  * Cria um CSS customizado para tooltips modernos
  */
 function injectTooltipStyles() {
-  if (document.querySelector('#modern-tooltip-styles')) return;
+  const styleId = 'suno-modern-tooltip-styles';
+  if (document.getElementById(styleId)) return;
 
-  const styles = `
-    <style id="modern-tooltip-styles">
-      /* ========================================
-         TIPPY.JS THEME CUSTOMIZADO - SUNO
-      ======================================== */
-      
-      .tippy-box[data-theme~='suno-modern'] {
-        background: rgba(15, 23, 42, 0.95);
-        backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 16px;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        padding: 0;
-        overflow: hidden;
-      }
-      
-      .tippy-box[data-theme~='suno-modern'][data-placement^='top'] > .tippy-arrow::before {
-        border-top-color: rgba(15, 23, 42, 0.95);
-      }
-      
-      .tippy-box[data-theme~='suno-modern'][data-placement^='bottom'] > .tippy-arrow::before {
-        border-bottom-color: rgba(15, 23, 42, 0.95);
-      }
-      
-      .tippy-box[data-theme~='suno-modern'][data-placement^='left'] > .tippy-arrow::before {
-        border-left-color: rgba(15, 23, 42, 0.95);
-      }
-      
-      .tippy-box[data-theme~='suno-modern'][data-placement^='right'] > .tippy-arrow::before {
-        border-right-color: rgba(15, 23, 42, 0.95);
-      }
+  const style = document.createElement('style');
+  style.id = styleId;
+  style.innerHTML = `
+    .tippy-box[data-theme~='suno-modern'] {
+      background-color: #0f172a; /* Cor de fundo principal (slate-900) */
+      color: #f1f5f9; /* Cor do texto (slate-100) */
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1); /* Sombra mais suave */
+      transition: all 0.2s ease-in-out;
+      backdrop-filter: blur(10px);
+    }
+
+    .tippy-box[data-theme~='suno-modern'][data-placement^='top'] > .tippy-arrow::before {
+      border-top-color: #0f172a;
+    }
+
+    .tippy-box[data-theme~='suno-modern'][data-placement^='bottom'] > .tippy-arrow::before {
+      border-bottom-color: #0f172a;
+    }
+
+    .tippy-box[data-theme~='suno-modern'][data-placement^='left'] > .tippy-arrow::before {
+      border-left-color: #0f172a;
+    }
+
+    .tippy-box[data-theme~='suno-modern'][data-placement^='right'] > .tippy-arrow::before {
+      border-right-color: #0f172a;
+    }
       
       /* ========================================
          TOOLTIP COMPONENTS
@@ -544,7 +542,7 @@ function injectTooltipStyles() {
     </style>
   `;
   
-  document.head.insertAdjacentHTML('beforeend', styles);
+  document.head.appendChild(style);
 }
 
 /**
@@ -555,58 +553,56 @@ function injectTooltipStyles() {
  * @returns {Object} Instância do tooltip
  */
 export function createModernTooltip(element, content, options = {}) {
-  if (!tippy) {
-    console.warn('Tippy.js não está disponível. Usando tooltip simples.');
-    return createFallbackTooltip(element, content);
+  if (!tippy || !element) {
+    return null;
   }
-
-  // Garantir que os estilos estejam injetados
-  injectTooltipStyles();
-
-  // Configurar conteúdo baseado no tipo
-  let htmlContent;
   
-  if (typeof content === 'string') {
-    htmlContent = tooltipTemplates.simple(content);
-  } else if (content.type === 'task') {
-    htmlContent = tooltipTemplates.task(content.data);
-  } else if (content.type === 'project') {
-    htmlContent = tooltipTemplates.project(content.data);
-  } else {
-    htmlContent = content.html || String(content);
+  // Destruir qualquer instância anterior para evitar duplicatas e vazamentos de memória
+  if (element._tippy) {
+    element._tippy.destroy();
   }
 
-  // Mesclar configurações
+  // Mesclar configurações padrão com as opções customizadas
   const config = {
     ...defaultTooltipConfig,
-    ...options,
-    content: htmlContent
+    content: content,
+    ...options
   };
 
-  return tippy(element, config);
+  // Inicializar o Tippy.js
+  const instance = tippy(element, config);
+  
+  // Se a inicialização falhar, retorna null
+  if (!instance) {
+    console.warn("Falha ao inicializar o Tippy.js no elemento:", element);
+    return null;
+  }
+  
+  return instance;
 }
 
 /**
- * Cria tooltip para itens da timeline (integração com timelineService)
- * @param {HTMLElement} element - Elemento da timeline
- * @param {Object} itemData - Dados do item
- * @param {string} type - Tipo do item ('task' ou 'project')
- * @returns {Object} Instância do tooltip
+ * Cria um tooltip detalhado para itens da timeline (tarefas ou projetos)
+ * @param {HTMLElement} element - Elemento DOM ao qual o tooltip será anexado
+ * @param {Object} itemData - Dados da tarefa ou projeto
+ * @param {string} type - Tipo de item ('task' ou 'project')
  */
 export function createTimelineTooltip(element, itemData, type = 'task') {
-  return createModernTooltip(element, {
-    type: type,
-    data: itemData
-  }, {
-    placement: 'top',
-    offset: [0, 15],
-    delay: [500, 200],
-    duration: [300, 200]
+  const template = tooltipTemplates[type] || tooltipTemplates.task;
+  const content = template(itemData);
+
+  const instance = createModernTooltip(element, content, {
+    placement: 'bottom-start',
+    trigger: 'click',
   });
+
+  /* if (instance) {
+    instance.show();
+  } */ // <--- Linha removida para não mostrar o tooltip automaticamente
 }
 
 /**
- * Cria tooltip simples para botões e controles
+ * Cria um tooltip simples para botões e controles
  * @param {HTMLElement} element - Elemento
  * @param {string} text - Texto principal
  * @param {string} subtitle - Subtítulo opcional
