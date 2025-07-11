@@ -94,8 +94,12 @@ function setupEventListeners() {
  * Carrega os dados do JSON
  */
 async function carregarDadosClientes() {
+  const timelineContainer = getEl("timeline");
+  const cronogramaCard = timelineContainer?.closest('.cronograma-card');
+
   try {
-    const timelineContainer = getEl("timeline");
+    // Adiciona a classe is-loading antes de começar a carregar
+    cronogramaCard?.classList.add('is-loading');
     mostrarLoading(timelineContainer, true);
     appState.isLoading = true;
     
@@ -124,6 +128,8 @@ async function carregarDadosClientes() {
   } finally {
     appState.isLoading = false;
     mostrarLoading(getEl("timeline"), false);
+    // Remove a classe is-loading após o carregamento, independentemente do resultado
+    cronogramaCard?.classList.remove('is-loading');
   }
 }
 

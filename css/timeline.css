@@ -44,7 +44,6 @@
 
 .timeline-container,
 #timeline.timeline-container {
-  flex: 1 !important;
   /* min-height e height removidos para um layout mais flexível */
   width: 100% !important;
   background: var(--timeline-bg);
@@ -77,7 +76,10 @@
   border: none !important;
   font-family: var(--font-family-primary) !important;
   background: transparent !important;
-  height: 100% !important;
+  height: auto !important; /* Permite que o flexbox controle a altura */
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 !important; /* Força a timeline a ocupar o espaço vertical */
   position: relative;
   z-index: 1;
 }
@@ -89,6 +91,16 @@
   background: transparent !important;
   backdrop-filter: blur(10px);
 }
+
+.vis-panel.vis-center {
+  flex: 1 !important; /* Força o painel do conteúdo a ocupar o espaço */
+}
+
+.vis-panel.vis-bottom {
+  height: 0 !important; /* Remove a altura do painel inferior */
+  min-height: 0 !important;
+}
+
 
 /* ========================================
    GRUPOS DA TIMELINE (LABELS LATERAIS)

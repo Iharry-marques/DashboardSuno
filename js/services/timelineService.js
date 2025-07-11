@@ -43,6 +43,7 @@ export function getTimelineOptions() {
   return {
     orientation: "top",
     stack: true,
+    autoResize: true, // Garante que a altura se ajuste ao conteúdo
     margin: { item: 6 },
     zoomMin: 1000 * 60 * 60 * 24 * 2, // 2 dias mínimo
     zoomMax: 1000 * 60 * 60 * 24 * 365, // 365 dias máximo

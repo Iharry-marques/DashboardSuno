@@ -240,9 +240,13 @@
 .cronograma-card {
   display: flex;
   flex-direction: column;
-  flex: 1;
+  flex: 1; /* <-- Restaurado para que o card se estique verticalmente */
+  /* A altura mínima será aplicada apenas durante o carregamento */
+}
+
+/* Adicionado para garantir que o container tenha altura durante o carregamento */
+.cronograma-card.is-loading {
   min-height: 500px;
-  height: 100%;
 }
 
 /* ========================================
