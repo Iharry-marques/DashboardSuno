@@ -483,14 +483,17 @@ export async function criarTimelineProjetos(container, projetos, config = {}) {
         const priority = projeto.priority?.toLowerCase() || "medium";
         const priorityClass = `task-priority-${priority}`;
 
+        // Alterar: mostrar área(s) no quadradinho
+        const areaLabel = projeto.groups && projeto.groups.length > 0 ? projeto.groups.join(", ") : "N/A";
+
         return {
           id: idx,
           content: `
             <div class="project-item-content">
-              <strong>${projeto.name || "Projeto sem nome"}</strong>
+              <strong>${areaLabel}</strong>
               <div class="project-meta">
                 <span class="progress-indicator" style="width: ${projeto.progress || 0}%"></span>
-                <span class="teams">${projeto.groups?.join(", ") || "N/A"}</span>
+                <span class="teams">${projeto.name || "Projeto sem nome"}</span>
               </div>
             </div>
           `,

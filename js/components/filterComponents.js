@@ -59,8 +59,15 @@ export function preencherSelectGrupos(dados, selectId = 'grupo-select') {
   // Suporta múltiplos IDs (grupo-select,grupo-principal-select)
   const ids = selectId.split(',').map(id => id.trim());
 
-  // Extrai os grupos únicos diretamente dos dados
-  const grupos = [...new Set(dados.map(item => item.TaskOwnerGroup).filter(Boolean))].sort();
+  // Extrai os grupos únicos diretamente das tarefas, não só dos projetos
+  let grupos = [];
+  if (dados[0] && dados[0].tasks) {
+    // Se for lista de projetos, extrair de todas as tarefas de todos os projetos
+    const allTarefas = dados.flatMap(proj => proj.tasks || []);
+    grupos = [...new Set(allTarefas.map(item => item.TaskOwnerGroup).filter(Boolean))].sort();
+  } else {
+    grupos = [...new Set(dados.map(item => item.TaskOwnerGroup).filter(Boolean))].sort();
+  }
 
   // Preencher cada select encontrado
   ids.forEach(id => {
