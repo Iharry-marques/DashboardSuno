@@ -1,6 +1,6 @@
 // tooltipEnhancements.js – SUNO Dashboard ✨  v2.4
 // ------------------------------------------------------------------
-// PATCH 2025‑07‑14 d ❯❯  • Elimina tooltips duplicados
+// PATCH 2024‑07‑14 ❯❯  • Elimina tooltips duplicados
 //                        • Garante apenas um tooltip visível por vez
 //                        • Mantém trigger somente em clique + botão ×
 // ------------------------------------------------------------------
