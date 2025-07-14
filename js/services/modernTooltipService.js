@@ -556,6 +556,9 @@ export function createModernTooltip(element, content, options = {}) {
   if (!tippy || !element) {
     return null;
   }
+
+  // Garante que os estilos personalizados estejam presentes
+  injectTooltipStyles();
   
   // Destruir qualquer instância anterior para evitar duplicatas e vazamentos de memória
   if (element._tippy) {
@@ -641,6 +644,8 @@ function createFallbackTooltip(element, content) {
  * Inicializa tooltips automáticos para elementos com data-tooltip
  */
 export function initAutoTooltips() {
+  // Insere o CSS customizado apenas uma vez
+  injectTooltipStyles();
   document.querySelectorAll('[data-tooltip]').forEach(element => {
     const text = element.getAttribute('data-tooltip');
     const subtitle = element.getAttribute('data-tooltip-subtitle');
