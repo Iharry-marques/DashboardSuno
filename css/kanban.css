@@ -12,8 +12,7 @@
   display: flex;
   gap: var(--space-4);
   overflow-x: auto;
-  padding: var(--space-6);
-  min-height: calc(100vh - 120px);
+  height: 100vh;
   background: var(--timeline-gradient-bg);
   position: relative;
   scroll-behavior: smooth;
