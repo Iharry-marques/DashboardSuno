@@ -337,18 +337,36 @@
    CORES - SEÇÕES REMOVIDAS
 ======================================== */
 
-/* CORES POR PRIORIDADE - REMOVIDO */
+/* CORES POR PRIORIDADE */
+.vis-item.task-priority-high,
+.vis-item.priority-high {
+  background: var(--priority-high) !important;
+  color: #fff !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.vis-item.task-priority-medium,
+.vis-item.priority-medium {
+  background: var(--priority-medium) !important;
+  color: #fff !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.vis-item.task-priority-low,
+.vis-item.priority-low {
+  background: var(--priority-low) !important;
+  color: #fff !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
 /* CORES POR TIPO DE TAREFA - REMOVIDO */
 /* STATUS - CORES MODERNIZADAS - REMOVIDO */
 /* SUBTAREFAS - ESTILO DIFERENCIADO - REMOVIDO */
 
 /* Estilo padrão para todas as barras, incluindo as que tinham classes de cor */
-.vis-item.task-priority-high,
-.vis-item.priority-high,
-.vis-item.task-priority-medium,
-.vis-item.priority-medium,
-.vis-item.task-priority-low,
-.vis-item.priority-low,
 .vis-item.tipo-texto,
 .vis-item.tipo-imagem,
 .vis-item.tipo-video,
