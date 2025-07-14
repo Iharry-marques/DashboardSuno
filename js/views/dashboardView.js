@@ -323,15 +323,9 @@ async function carregarDadosDashboard() {
   try {
     const timelineContainer = getEl("timeline");
     
-    // Loading moderno
-    mostrarLoading(timelineContainer, true);
+    // Loading moderno global
+    mostrarLoading('Carregando dashboard...');
     appState.isLoading = true;
-    
-    // Mostrar progresso
-    const loadingModal = showLoading(
-      "Carregando dashboard...", 
-      "Buscando dados das tarefas"
-    );
     
     const startTime = performance.now();
     
@@ -390,7 +384,7 @@ async function carregarDadosDashboard() {
     
   } finally {
     appState.isLoading = false;
-    showLoadingState(getEl("timeline"), false);
+    // Removido showLoadingState para evitar conflito de loading global
   }
 }
 
@@ -558,6 +552,9 @@ async function criarTimeline(dados) {
   const container = getEl("timeline");
   if (!container) return;
 
+  // Garantir classe do container
+  container.classList.add('timeline-container');
+
   const renderStartTime = performance.now();
 
   try {
@@ -584,7 +581,6 @@ async function criarTimeline(dados) {
 
     console.log("🎨 Criando timeline moderna com", dados.length, "tarefas...");
 
-    // Criar timeline com configurações modernas
     const timelineResult = await criarTimelineTarefas(container, dados, {
       priorityClasses: CONFIG.priorityClasses,
       animations: CONFIG.animations
@@ -592,6 +588,24 @@ async function criarTimeline(dados) {
 
     if (timelineResult) {
       appState.timeline = timelineResult.timeline;
+
+      // Patch: aplicar classes visuais nas barras após renderização
+      setTimeout(() => {
+        const bars = container.querySelectorAll('.vis-item');
+        bars.forEach(bar => {
+          bar.classList.add('gantt-bar');
+          // Remover classes antigas de cor
+          bar.classList.remove('yellow', 'red', 'green');
+          // Detectar prioridade/status para cor
+          if (bar.classList.contains('task-priority-high') || bar.classList.contains('status-atrasado')) {
+            bar.classList.add('red');
+          } else if (bar.classList.contains('task-priority-medium') || bar.classList.contains('status-andamento')) {
+            bar.classList.add('yellow');
+          } else if (bar.classList.contains('task-priority-low') || bar.classList.contains('status-concluido')) {
+            bar.classList.add('green');
+          }
+        });
+      }, 100);
 
       // Configurar evento de fullscreen
       configurarFullscreen();
@@ -631,7 +645,6 @@ async function criarTimeline(dados) {
       </div>
     `;
     
-    showError("Erro na timeline", error.message);
   }
 }
 
