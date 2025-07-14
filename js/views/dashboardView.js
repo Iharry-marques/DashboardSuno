@@ -9,6 +9,40 @@ const vis = window.vis;
 const moment = window.moment;
 const bootstrap = window.bootstrap;
 
+// Função para mostrar o loading moderno
+function mostrarLoading(mensagem = 'Carregando...') {
+  // Evita múltiplos loadings
+  if (document.getElementById('modern-loading-overlay')) return;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'modern-loading-overlay';
+  overlay.style.position = 'fixed';
+  overlay.style.top = '0';
+  overlay.style.left = '0';
+  overlay.style.width = '100vw';
+  overlay.style.height = '100vh';
+  overlay.style.background = 'rgba(15,23,42,0.6)';
+  overlay.style.zIndex = '9999';
+  overlay.style.display = 'flex';
+  overlay.style.alignItems = 'center';
+  overlay.style.justifyContent = 'center';
+
+  overlay.innerHTML = `
+    <div class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>${mensagem}</p>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+}
+
+// Função para esconder o loading moderno
+function esconderLoading() {
+  const overlay = document.getElementById('modern-loading-overlay');
+  if (overlay) overlay.remove();
+}
+
 // Imports modernos
 import { carregarDados, aplicarFiltros } from '../services/dataService.js';
 import { formatarTarefasParaCSV, exportarParaCSV } from '../services/exportService.js';
@@ -290,7 +324,7 @@ async function carregarDadosDashboard() {
     const timelineContainer = getEl("timeline");
     
     // Loading moderno
-    showLoadingState(timelineContainer, true);
+    mostrarLoading(timelineContainer, true);
     appState.isLoading = true;
     
     // Mostrar progresso
@@ -308,7 +342,7 @@ async function carregarDadosDashboard() {
     appState.performanceMetrics.loadTime = loadTime;
     
     // Fechar loading
-    hideLoading();
+    esconderLoading();
     
     // Preencher filtros
     preencherFiltros();
@@ -329,7 +363,7 @@ async function carregarDadosDashboard() {
   } catch (error) {
     console.error("Erro ao carregar dados:", error);
     
-    hideLoading();
+    esconderLoading();
     
     showError(
       "Erro ao carregar dados",
