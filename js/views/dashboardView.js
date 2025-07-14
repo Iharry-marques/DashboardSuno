@@ -223,18 +223,8 @@ function setupEventListeners() {
     periodoSelect.addEventListener("change", debouncedUpdate);
   }
   
-  const grupoSelect = getEl("grupo-select");
-  if (grupoSelect) {
-    grupoSelect.addEventListener("change", () => {
-      atualizarSubgrupos();
-      debouncedUpdate();
-    });
-  }
-  
-  const subgrupoSelect = getEl("subgrupo-select");
-  if (subgrupoSelect) {
-    subgrupoSelect.addEventListener("change", debouncedUpdate);
-  }
+  // Remover eventos de grupo/subgrupo
+  // Adicionar evento para input de nome já está em preencherFiltros
   
   // Filtros de tipo de tarefa
   const tarefasCheckbox = getEl("mostrar-tarefas");
@@ -435,17 +425,24 @@ function preencherFiltros() {
   
   console.log("🔧 Preenchendo filtros...");
   
-  // Preencher selects de cliente e grupo
+  // Preencher select de clientes normalmente
   preencherSelectClientes(appState.allData, 'cliente-principal-select');
-  preencherSelectGrupos(appState.allData, 'grupo-select');
-  
-  // Preencher subgrupos com base no grupo selecionado
-  atualizarSubgrupos();
-  
-  // Configurar filtro de período
+  // Adicionar input de filtro de nome se não existir
+  let nomeInput = getEl('responsavel-nome-input');
+  if (!nomeInput) {
+    const filtrosContainer = getEl('filtros-container') || document.body;
+    nomeInput = document.createElement('input');
+    nomeInput.type = 'text';
+    nomeInput.id = 'responsavel-nome-input';
+    nomeInput.placeholder = 'Filtrar por responsável...';
+    nomeInput.className = 'form-control filtro-nome';
+    nomeInput.style = 'max-width: 250px; margin-left: 1rem; display: inline-block;';
+    filtrosContainer.appendChild(nomeInput);
+    nomeInput.addEventListener('input', debounce(atualizarFiltros, 300));
+  }
+  // Filtro de período permanece
   configurarFiltroPeriodo('periodo-select', atualizarFiltros);
-  
-  // Configurar filtros de tipo de tarefa
+  // Filtros de tipo de tarefa permanecem
   configurarFiltroTipoTarefa('mostrar-tarefas', 'mostrar-subtarefas', atualizarFiltros);
   
   console.log("✅ Filtros preenchidos com sucesso");
@@ -464,37 +461,37 @@ function atualizarSubgrupos() {
  */
 async function atualizarFiltros() {
   if (!appState.allData || appState.allData.length === 0) return;
-  
   const startTime = performance.now();
-  
   try {
     // Obter valores dos filtros
     const filtros = obterValoresFiltros({
       clienteSelectId: 'cliente-principal-select',
-      grupoSelectId: 'grupo-select',
-      subgrupoSelectId: 'subgrupo-select',
       periodoSelectId: 'periodo-select',
       mostrarTarefasId: 'mostrar-tarefas',
       mostrarSubtarefasId: 'mostrar-subtarefas'
     });
-    
-    // Aplicar filtros
-    appState.filteredData = aplicarFiltros(appState.allData, filtros);
-    
+    // Sempre filtrar por CRIAÇÃO
+    let resultado = appState.allData.filter(item => item.TaskOwnerGroup === 'CRIAÇÃO');
+    // Filtro por nome
+    const nomeInput = getEl('responsavel-nome-input');
+    const nomeFiltro = nomeInput ? nomeInput.value.trim().toLowerCase() : '';
+    if (nomeFiltro) {
+      resultado = resultado.filter(item => (item.responsible || '').toLowerCase().includes(nomeFiltro));
+    }
+    // Aplicar demais filtros (cliente, período, tipo de tarefa)
+    let resultadoFinal = aplicarFiltros(resultado, filtros);
+    appState.filteredData = resultadoFinal;
     const filterTime = performance.now() - startTime;
     appState.performanceMetrics.filterTime = filterTime;
-    
-    // Atualizar timeline
     await criarTimeline(appState.filteredData);
-    
     // Atualizar indicadores na UI
     // updateFilterStatus(filtros); // Comentado para remover o display de contagem de tarefas
     
     console.log(`🔍 Filtros aplicados em ${filterTime.toFixed(2)}ms - ${appState.filteredData.length} tarefas`);
     
   } catch (error) {
-    console.error("Erro ao atualizar filtros:", error);
-    showError("Erro nos filtros", error.message);
+    console.error('Erro ao atualizar filtros:', error);
+    showError('Erro nos filtros', error.message);
   }
 }
 
