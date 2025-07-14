@@ -286,41 +286,6 @@ function forceTimelineRefresh(timeline) {
   
   // Ajusta dimensões
   timeline.fit();
-  
-  // Ajusta altura dos grupos
-  setTimeout(() => {
-    stretchTimelineGroups();
-  }, 50);
-}
-
-/**
- * Ajusta a altura dos painéis de grupo da timeline para preencher o espaço vertical
- */
-function stretchTimelineGroups() {
-  const container = document.getElementById("timeline");
-  if (!container) return;
-
-  const centerPanel = container.querySelector('.vis-center');
-  const groups = container.querySelectorAll(".vis-group");
-  if (!groups.length) return;
-
-  const containerHeight = centerPanel ? centerPanel.offsetHeight : container.offsetHeight;
-
-  if (containerHeight < 200) {
-    console.warn("stretchTimelineGroups abortado: altura insuficiente", containerHeight);
-    return;
-  }
-
-  let groupHeight = Math.floor((containerHeight - 30) / groups.length);
-  if (groupHeight < 50) groupHeight = 50;
-  if (groupHeight > 200) groupHeight = 200;
-
-  groups.forEach((group) => {
-    group.style.minHeight = `${groupHeight}px`;
-    group.style.height = `${groupHeight}px`;
-  });
-
-  console.log("stretchTimelineGroups: grupos ajustados para", groupHeight, "px");
 }
 
 /**
@@ -370,15 +335,6 @@ export async function criarTimelineTarefas(container, dados, config = {}) {
   }
 
   try {
-    console.log("Aguardando dimensões válidas do container...");
-    
-    // Aguardar container ter dimensões válidas
-    const hasValidDimensions = await waitForContainerDimensions(container);
-    
-    if (!hasValidDimensions) {
-      console.warn("Container não obteve dimensões válidas, prosseguindo mesmo assim...");
-    }
-
     // Destruir tooltips existentes
     destroyTooltips(container);
 
@@ -436,42 +392,17 @@ export async function criarTimelineTarefas(container, dados, config = {}) {
       ...config.timelineOptions 
     };
     
-    console.log("Criando timeline...");
     const timeline = new vis.Timeline(container, items, visGroups, options);
-
-    // Aguardar renderização completa
-    await new Promise(resolve => {
-      const onChanged = () => {
-        timeline.off('changed', onChanged);
-        resolve();
-      };
-      timeline.on('changed', onChanged);
-      
-      // Fallback caso o evento 'changed' não dispare
-      setTimeout(resolve, 800);
-    });
-
-    console.log("Timeline criada, configurando eventos e efeitos modernos...");
-
-    // Configurar eventos e tooltips modernos
+    
+    // ALTERAÇÃO: Forçar um redraw após um pequeno delay para corrigir o cálculo de altura
+    setTimeout(() => {
+      timeline.redraw();
+      window.dispatchEvent(new Event("resize"));
+    }, 10);
+    
     configurarEventosTimeline(timeline, items, 'task');
-
-    // Adicionar efeitos visuais modernos
     addModernEffects(container);
-
-    // Forçar refresh sequencial com verificações
-    await new Promise(resolve => {
-      requestAnimationFrame(() => {
-        timeline.redraw();
-        requestAnimationFrame(() => {
-          stretchTimelineGroups();
-          irParaHoje(timeline);
-          window.dispatchEvent(new Event("resize"));
-          resolve();
-        });
-      });
-    });
-
+    
     console.log("Timeline de tarefas criada com sucesso!");
     return { timeline, items, groups: visGroups };
 
@@ -508,15 +439,6 @@ export async function criarTimelineProjetos(container, projetos, config = {}) {
   }
 
   try {
-    console.log("Aguardando dimensões válidas do container...");
-    
-    // Aguardar container ter dimensões válidas
-    const hasValidDimensions = await waitForContainerDimensions(container);
-    
-    if (!hasValidDimensions) {
-      console.warn("Container não obteve dimensões válidas, prosseguindo mesmo assim...");
-    }
-
     // Destruir tooltips existentes
     destroyTooltips(container);
 
@@ -587,42 +509,17 @@ export async function criarTimelineProjetos(container, projetos, config = {}) {
       ...config.timelineOptions,
     };
 
-    console.log("Criando timeline de projetos...");
     const timeline = new vis.Timeline(container, items, visGroups, options);
-
-    // Aguardar renderização completa
-    await new Promise(resolve => {
-      const onChanged = () => {
-        timeline.off('changed', onChanged);
-        resolve();
-      };
-      timeline.on('changed', onChanged);
-      
-      // Fallback caso o evento 'changed' não dispare
-      setTimeout(resolve, 800);
-    });
-
-    console.log("Timeline de projetos criada, configurando eventos e efeitos modernos...");
-
-    // Configurar eventos e tooltips modernos
-    configurarEventosTimeline(timeline, items, 'project');
-
-    // Adicionar efeitos visuais modernos
-    addModernEffects(container);
-
-    // Forçar refresh sequencial com verificações
-    await new Promise(resolve => {
-      requestAnimationFrame(() => {
+    
+    // ALTERAÇÃO: Forçar um redraw após um pequeno delay para corrigir o cálculo de altura
+    setTimeout(() => {
         timeline.redraw();
-        requestAnimationFrame(() => {
-          stretchTimelineGroups();
-          irParaHoje(timeline);
-          window.dispatchEvent(new Event("resize"));
-          resolve();
-        });
-      });
-    });
+        window.dispatchEvent(new Event("resize"));
+    }, 10);
 
+    configurarEventosTimeline(timeline, items, 'project');
+    addModernEffects(container);
+    
     console.log("Timeline de projetos criada com sucesso!");
     return { timeline, items, groups: visGroups };
 
@@ -660,20 +557,3 @@ export const CONFIG = {
     easing: 'easeInOutQuad'
   }
 };
-
-// Listener para resize da janela com debounce
-let resizeTimeout;
-window.addEventListener("resize", () => {
-  clearTimeout(resizeTimeout);
-  resizeTimeout = setTimeout(() => {
-    stretchTimelineGroups();
-  }, 150);
-});
-
-// Listener para mudança de orientação em dispositivos móveis
-window.addEventListener("orientationchange", () => {
-  setTimeout(() => {
-    stretchTimelineGroups();
-    window.dispatchEvent(new Event("resize"));
-  }, 300);
-});
