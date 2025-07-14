@@ -591,24 +591,6 @@ async function criarTimeline(dados) {
     if (timelineResult) {
       appState.timeline = timelineResult.timeline;
 
-      // Patch: aplicar classes visuais nas barras após renderização
-      setTimeout(() => {
-        const bars = container.querySelectorAll('.vis-item');
-        bars.forEach(bar => {
-          bar.classList.add('gantt-bar');
-          // Remover classes antigas de cor
-          bar.classList.remove('yellow', 'red', 'green');
-          // Detectar prioridade/status para cor
-          if (bar.classList.contains('task-priority-high') || bar.classList.contains('status-atrasado')) {
-            bar.classList.add('red');
-          } else if (bar.classList.contains('task-priority-medium') || bar.classList.contains('status-andamento')) {
-            bar.classList.add('yellow');
-          } else if (bar.classList.contains('task-priority-low') || bar.classList.contains('status-concluido')) {
-            bar.classList.add('green');
-          }
-        });
-      }, 100);
-
       // Configurar evento de fullscreen
       configurarFullscreen();
       

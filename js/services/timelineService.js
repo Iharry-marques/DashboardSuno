@@ -36,6 +36,20 @@ function waitForContainerDimensions(container, maxAttempts = 50) {
 }
 
 /**
+ * Gera iniciais a partir de um título para exibição em espaços pequenos.
+ * @param {string} title - O título da tarefa.
+ * @returns {string} - As iniciais geradas.
+ */
+function getInitials(title) {
+  if (!title || typeof title !== 'string') return '';
+  // Remove parênteses e colchetes, depois divide em palavras.
+  const words = title.replace(/\[.*?\]/g, '').replace(/\(.*?\)/g, '').trim().split(' ');
+  // Pega a primeira letra das 3 primeiras palavras não vazias.
+  return words.filter(Boolean).slice(0, 3).map(w => w[0]).join('').toUpperCase();
+}
+
+
+/**
  * Configurações padrão para a timeline modernizada
  * @returns {Object} Objeto de configuração da timeline
  */
@@ -356,25 +370,32 @@ export async function criarTimelineTarefas(container, dados, config = {}) {
         }
 
         const durationHours = endDate.diff(startDate, "hours");
-        const isShortDuration = durationHours < 8;
+        const isShortDuration = durationHours < 8; // Mantido para CSS min-width
+        
+        // Define que a visualização é muito pequena se a duração for de 24h ou menos
+        const isShortView = durationHours <= 24;
+
         const isSubtask = item.tipo === "Subtarefa";
         const priority = item.Priority?.toLowerCase() || "medium";
         const priorityClass = `task-priority-${priority}`;
         const taskClass = `${priorityClass} ${isSubtask ? "subtask" : ""} ${
           isShortDuration ? "curta" : "longa"
         }`;
+        
+        // Define o conteúdo do item: iniciais para tarefas curtas, título completo para as demais.
+        const content = isShortView ? getInitials(item.name) : (item.name || "Tarefa sem nome");
 
         return {
           id: idx,
-          content: item.name || "Tarefa sem nome",
+          content: content,
           start: startDate.toDate(),
           end: endDate.toDate(),
           group: item.responsible,
           className: taskClass,
-          isShortDuration: isShortDuration,
+          isShortDuration: isShortDuration, // Mantido para CSS
           itemData: item,
           priorityClass: priorityClass,
-          title: ''
+          title: '' // O tooltip moderno customizado é usado no lugar do title nativo.
         };
       })
     );
@@ -415,6 +436,7 @@ export async function criarTimelineTarefas(container, dados, config = {}) {
     return null;
   }
 }
+
 
 /**
  * Cria uma timeline para visualização de projetos por cliente - VERSÃO MODERNIZADA
