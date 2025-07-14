@@ -4,8 +4,9 @@
  * @project Dashboard de Tarefas - SUNO
  */
 
-// Importar sistema de tooltips modernos
-import { createTimelineTooltip, destroyTooltips } from './modernTooltipService.js';
+// --- Tooltip stubs (modernTooltipService removido) ---------------------------
+function destroyTooltips() { /* Removed old tooltip, no-op now */ }
+// ---------------------------------------------------------------------------
 
 /**
  * Aguarda o container ter dimensões válidas antes de prosseguir
@@ -112,7 +113,7 @@ function setupModernTooltips(timeline, items, type = 'task') {
 
       // Criar tooltip moderno
       try {
-        createTimelineTooltip(element, itemData.itemData, type);
+        // createTimelineTooltip(element, itemData.itemData, type); // Removed
       } catch (error) {
         console.warn('Erro ao criar tooltip para item:', itemId, error);
       }
@@ -349,7 +350,7 @@ export async function criarTimelineTarefas(container, dados, config = {}) {
   }
 
   try {
-    destroyTooltips(container);
+    destroyTooltips(); // Removed
 
     const responsaveis = [
       ...new Set(dados.map((t) => t.responsible).filter(Boolean)),
@@ -413,6 +414,8 @@ export async function criarTimelineTarefas(container, dados, config = {}) {
     };
     
     const timeline = new vis.Timeline(container, items, visGroups, options);
+    window.timeline = timeline;
+    timeline.itemsData = items;
     
     // CORREÇÃO DEFINITIVA: Força um redraw após um pequeno delay para corrigir o cálculo de altura
     setTimeout(() => {
@@ -459,7 +462,7 @@ export async function criarTimelineProjetos(container, projetos, config = {}) {
   }
 
   try {
-    destroyTooltips(container);
+    destroyTooltips(); // Removed
 
     const clientes = [
       ...new Set(projetos.map((p) => p.client).filter(Boolean)),
@@ -532,6 +535,8 @@ export async function criarTimelineProjetos(container, projetos, config = {}) {
     };
 
     const timeline = new vis.Timeline(container, items, visGroups, options);
+    window.timeline = timeline;
+    timeline.itemsData = items;
     
     // CORREÇÃO DEFINITIVA: Forçar um redraw após um pequeno delay
     setTimeout(() => {

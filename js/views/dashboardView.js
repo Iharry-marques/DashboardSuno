@@ -77,12 +77,26 @@ import {
   showConfirm 
 } from '../services/modernNotifications.js';
 
-// Sistema moderno de tooltips
-import { 
-  createSimpleTooltip, 
-  initAutoTooltips,
-  destroyTooltips 
-} from '../services/modernTooltipService.js';
+// --- Tooltip helpers (modernTooltipService removido) ---------------------------
+function createSimpleTooltip(element, text, subtitle = null) {
+  if (!window.tippy) return;
+  const content = subtitle ? `<strong>${text}</strong><br><small>${subtitle}</small>` : text;
+  window.tippy(element, {
+    content, allowHTML: true, theme: 'suno', animation: 'scale-subtle', duration: [200,150]
+  });
+}
+
+function initAutoTooltips(root = document) {
+  root.querySelectorAll('[data-tooltip]').forEach(el => {
+    if (!el._tippy) createSimpleTooltip(el, el.dataset.tooltip);
+  });
+}
+
+function destroyTooltips(container = document) {
+  container.querySelectorAll('[data-tippy-root]')
+    .forEach(p => p._tippy?.destroy());
+}
+// ---------------------------------------------------------------------------
 
 // Estado da aplicação
 let appState = {
