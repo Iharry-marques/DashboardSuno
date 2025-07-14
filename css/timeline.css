@@ -48,7 +48,8 @@
   width: 100% !important;
   background: var(--timeline-bg);
   border-radius: var(--radius-lg);
-  overflow: hidden !important;
+  /* ALTERADO: overflow hidden para auto para permitir rolagem interna */
+  overflow: auto !important; 
   display: flex;
   flex-direction: column;
   position: relative;

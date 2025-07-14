@@ -11,7 +11,7 @@
 .app-container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh; 
   padding-top: var(--layout-header-height);
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   position: relative;
@@ -108,8 +108,8 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
-  padding: var(--space-8) var(--space-6);
-  max-width: 95%; /* Aumentado para ocupar mais espaço horizontal */
+  max-width: 100%;
+  padding: var(--space-6) var(--space-4) var(--space-4);
   margin: 0 auto;
   width: 100%;
   position: relative;
@@ -161,10 +161,9 @@
 
 .timeline-container {
   flex: 1;
-  /* min-height e height removidos para permitir que o conteúdo defina a altura */
   width: 100%;
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  overflow: auto;
   background: var(--surface-primary);
   box-shadow: var(--shadow-lg);
   position: relative;
@@ -187,13 +186,7 @@
 ======================================== */
 
 .app-footer {
-  background: linear-gradient(135deg, var(--surface-dark), var(--surface-dark-secondary));
-  color: var(--text-inverse);
-  padding: var(--space-8) var(--space-6);
-  text-align: center;
-  margin-top: auto;
-  position: relative;
-  overflow: hidden;
+  display: none;
 }
 
 .app-footer::before {

@@ -345,14 +345,16 @@ async function carregarDadosDashboard() {
     await atualizarFiltros();
     
     // Sucesso com métricas
+    /* Comentado para remover notificação inicial
     showSuccess(
       "Dashboard carregado!", 
       `${appState.allData.length} tarefas carregadas em ${loadTime.toFixed(0)}ms`
     );
+    */
     
     // Atualizar timestamp
     appState.lastUpdateTime = new Date();
-    updateLastUpdateDisplay();
+    // updateLastUpdateDisplay(); // Comentado para remover o display de "Atualizado às"
     
   } catch (error) {
     console.error("Erro ao carregar dados:", error);
@@ -486,7 +488,7 @@ async function atualizarFiltros() {
     await criarTimeline(appState.filteredData);
     
     // Atualizar indicadores na UI
-    updateFilterStatus(filtros);
+    // updateFilterStatus(filtros); // Comentado para remover o display de contagem de tarefas
     
     console.log(`🔍 Filtros aplicados em ${filterTime.toFixed(2)}ms - ${appState.filteredData.length} tarefas`);
     
@@ -617,6 +619,7 @@ async function criarTimeline(dados) {
       console.log(`✨ Timeline criada com sucesso em ${renderTime.toFixed(2)}ms!`);
       
       // Feedback sutil de sucesso
+      /* Comentado para remover notificação inicial
       if (dados.length > 50) {
         setTimeout(() => {
           showSuccess(
@@ -626,6 +629,7 @@ async function criarTimeline(dados) {
           );
         }, 500);
       }
+      */
     }
 
   } catch (error) {

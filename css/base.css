@@ -160,7 +160,8 @@
 }
 
 html {
-  font-size: 16px;
+  /* ALTERADO: Reduzido o tamanho da fonte base para escalar toda a UI */
+  font-size: 14px; 
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -174,7 +175,8 @@ body {
   color: var(--text-primary);
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   height: 100%;
-  overflow: hidden;
+  /* ALTERADO: Reintroduzido para travar a rolagem da página */
+  overflow: hidden; 
 }
 
 /* ========================================
