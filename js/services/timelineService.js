@@ -335,7 +335,6 @@ export async function criarTimelineTarefas(container, dados, config = {}) {
   }
 
   try {
-    // Destruir tooltips existentes
     destroyTooltips(container);
 
     const responsaveis = [
@@ -373,9 +372,9 @@ export async function criarTimelineTarefas(container, dados, config = {}) {
           group: item.responsible,
           className: taskClass,
           isShortDuration: isShortDuration,
-          itemData: item, // Dados originais para o tooltip
+          itemData: item,
           priorityClass: priorityClass,
-          title: '' // Desabilitar tooltip nativo do vis.js
+          title: ''
         };
       })
     );
@@ -394,11 +393,10 @@ export async function criarTimelineTarefas(container, dados, config = {}) {
     
     const timeline = new vis.Timeline(container, items, visGroups, options);
     
-    // ALTERAÇÃO: Forçar um redraw após um pequeno delay para corrigir o cálculo de altura
+    // CORREÇÃO DEFINITIVA: Força um redraw após um pequeno delay para corrigir o cálculo de altura
     setTimeout(() => {
       timeline.redraw();
-      window.dispatchEvent(new Event("resize"));
-    }, 10);
+    }, 100);
     
     configurarEventosTimeline(timeline, items, 'task');
     addModernEffects(container);
@@ -439,7 +437,6 @@ export async function criarTimelineProjetos(container, projetos, config = {}) {
   }
 
   try {
-    // Destruir tooltips existentes
     destroyTooltips(container);
 
     const clientes = [
@@ -479,10 +476,10 @@ export async function criarTimelineProjetos(container, projetos, config = {}) {
           end: endDate.toDate(),
           group: projeto.client,
           className: `${priorityClass} ${statusClass} project-item`,
-          itemData: projeto, // Dados originais para o tooltip
+          itemData: projeto,
           priorityClass: priorityClass,
           statusClass: statusClass,
-          title: '' // Desabilitar tooltip nativo do vis.js
+          title: ''
         };
       })
     );
@@ -511,11 +508,10 @@ export async function criarTimelineProjetos(container, projetos, config = {}) {
 
     const timeline = new vis.Timeline(container, items, visGroups, options);
     
-    // ALTERAÇÃO: Forçar um redraw após um pequeno delay para corrigir o cálculo de altura
+    // CORREÇÃO DEFINITIVA: Forçar um redraw após um pequeno delay
     setTimeout(() => {
         timeline.redraw();
-        window.dispatchEvent(new Event("resize"));
-    }, 10);
+    }, 100);
 
     configurarEventosTimeline(timeline, items, 'project');
     addModernEffects(container);
