@@ -4,18 +4,18 @@
  * @project Dashboard de Tarefas - SUNO
  */
 
-import { initCoreView } from "../coreView.js";
-import { processarProjetos } from "../services/dataService.js";
-import { criarTimeline, Mappers } from "../services/timelineService.js";
-import { formatarProjetosParaCSV } from "../services/exportService.js";
+import { initCoreView } from '../coreView.js';
+import { processarProjetos } from '../services/dataService.js';
+import { criarTimeline, Mappers } from '../services/timelineService.js';
+import { formatarProjetosParaCSV } from '../services/exportService.js';
 import {
   preencherSelectClientes,
   preencherSelectGrupos,
-} from "../components/filterComponents.js";
+} from '../components/filterComponents.js';
 
 // Função para renderizar o tooltip de PROJETOS
 function renderProjetoTooltip(item) {
-  if (!item || !item.itemData) return "";
+  if (!item || !item.itemData) return '';
   const projeto = item.itemData;
   return `
     <div class="suno-tooltip">
@@ -34,23 +34,26 @@ function renderProjetoTooltip(item) {
 const clientsConfig = {
   dataProcessor: processarProjetos,
   filterConfig: {
-    clienteSelectId: "cliente-select",
-    grupoSelectId: "grupo-select",
-    periodoSelectId: "periodo-select",
+    clienteSelectId: 'cliente-select',
+    grupoSelectId: 'grupo-select',
+    periodoSelectId: 'periodo-select',
   },
   preencherFiltros: (dados) => {
-    preencherSelectClientes(dados, "cliente-select");
-    preencherSelectGrupos(dados, "grupo-select");
+    preencherSelectClientes(dados, 'cliente-select');
+    preencherSelectGrupos(dados, 'grupo-select');
   },
-  // Passa a função genérica `criarTimeline` com as configurações específicas
+  // ✅ CORREÇÃO 2: Mapper isolado nesta view para garantir grupo = cliente
   timelineCreator: (container, dados) =>
     criarTimeline(container, dados, {
-      itemMapper: Mappers.mapProjetoToTimelineItem,
+      itemMapper: projeto => {
+        const base = Mappers.mapProjetoToTimelineItem(projeto);
+        return { ...base, group: projeto.client };   // garante grupo = cliente
+      },
       tooltipRenderer: renderProjetoTooltip,
     }),
   exportFormatter: () => ({
     ...formatarProjetosParaCSV(),
-    fileName: "projetos_por_cliente",
+    fileName: 'projetos_por_cliente',
   }),
 };
 

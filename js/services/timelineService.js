@@ -73,6 +73,7 @@ export async function criarTimeline(
     
     // Console para não ficar “no escuro”
     console.table(mapped.slice(0,5), ['id','group','content']);
+
     
     // 2) Agora sim, cria os grupos a partir do resultado mapeado
     const groups = new vis.DataSet(

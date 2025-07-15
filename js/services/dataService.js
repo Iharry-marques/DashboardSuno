@@ -24,23 +24,22 @@ export async function carregarDados(url = 'dados.json') {
 export function mapearDadosBrutos(dadosBrutos) {
     if (!Array.isArray(dadosBrutos)) return [];
 
-    // 1) Mapeia os dados brutos, adicionando os novos campos
     const mapeados = dadosBrutos.map(item => ({
         id: item.UniqueTaskID,
         tipo: item.TipoTarefa,
         client: item.ClientNickname,
         project: item.JobTitle,
         content: item.TaskTitle,
-        start: item.TaskCreationDate,
-        end: item.CurrentDueDate,
-        responsible: item.TaskOwnerDisplayName,   // quem vai virar a linha
-        area: item.TaskOwnerFunctionGroupName,    // área/função (CRIAÇÃO, MÍDIA…)
-        group: item.TaskOwnerFunctionGroupName,   // mantém para não quebrar filtros antigos
+        // ✅ CORREÇÃO 3: Datas convertidas para new Date() na importação
+        start: new Date(item.TaskCreationDate),
+        end:   new Date(item.CurrentDueDate),
+        responsible: item.TaskOwnerDisplayName,
+        area: item.TaskOwnerFunctionGroupName,
+        group: item.TaskOwnerFunctionGroupName,
         status: item.PipelineStepTitle,
         priority: item.JobHealth,
     }));
     
-    // 2) Remove ids repetidos (fica só o primeiro)
     const unicosMap = new Map();
     for (const t of mapeados) {
       if (!unicosMap.has(t.id)) unicosMap.set(t.id, t);
@@ -55,29 +54,43 @@ export function mapearDadosBrutos(dadosBrutos) {
  * @returns {Array}
  */
 export function processarProjetos(tarefas) {
+  // ✅ CORREÇÃO 1: Lógica da função inteira atualizada
   const projetosMap = new Map();
-  tarefas.forEach((tarefa) => {
-    const projectKey = tarefa.project || `Projeto Avulso - ${tarefa.client}`;
+  tarefas.forEach(tarefa => {
+    // garante unicidade por cliente + título (ou use JobNumber se preferir)
+    const projectKey = `${tarefa.client || 'Sem cliente'} | ${tarefa.project || 'Sem título'}`;
+
     if (!projetosMap.has(projectKey)) {
       projetosMap.set(projectKey, {
-        id: projectKey, name: projectKey, client: tarefa.client, tasks: [],
-        groups: new Set(), start: null, end: null, status: 'Em andamento', priority: 'medium'
+        id: projectKey,
+        name: tarefa.project || 'Sem título',
+        client: tarefa.client || 'Sem cliente',
+        tasks: [],
+        groups: new Set(),
+        start: null,
+        end: null,
+        status: 'Em andamento',
+        priority: 'medium'
       });
     }
+
     const projeto = projetosMap.get(projectKey);
     projeto.tasks.push(tarefa);
-    if(tarefa.group) projeto.groups.add(tarefa.group);
+    if (tarefa.group) projeto.groups.add(tarefa.group);
+
+    // start/end já vêm como Date, mas garantimos a conversão para evitar erros
     const tarefaStart = new Date(tarefa.start);
-    const tarefaEnd = new Date(tarefa.end);
+    const tarefaEnd   = new Date(tarefa.end);
+
     if (!projeto.start || tarefaStart < projeto.start) projeto.start = tarefaStart;
-    if (!projeto.end || tarefaEnd > projeto.end) projeto.end = tarefaEnd;
+    if (!projeto.end   || tarefaEnd   > projeto.end)   projeto.end   = tarefaEnd;
   });
 
-  return Array.from(projetosMap.values()).map(proj => {
-    proj.groups = Array.from(proj.groups);
-    proj.group = proj.client; // Para compatibilidade com a timeline
-    return proj;
-  });
+  return Array.from(projetosMap.values()).map(proj => ({
+    ...proj,
+    groups: Array.from(proj.groups),
+    group: proj.client               // ← linha do Gantt = cliente
+  }));
 }
 
 /**
@@ -87,7 +100,7 @@ export function processarProjetos(tarefas) {
  * @returns {Array}
  */
 export function aplicarFiltros(dados, filtros) {
-    if (!dados) return []; // Guarda para previnir o erro "Cannot read properties of null"
+    if (!dados) return []; 
     
     return dados.filter(item => {
         if (filtros.grupo && filtros.grupo !== 'todos' && item.group !== filtros.grupo) {
