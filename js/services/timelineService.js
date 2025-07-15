@@ -1,6 +1,6 @@
 /**
- * @file timelineService.js
- * @description Serviço genérico para criação e manipulação da timeline.
+ * @file timelineService.js - MODERNIZADO
+ * @description Estilos modernos para a timeline Vis.js com glassmorphism e micro-interações
  * @project Dashboard de Tarefas - SUNO
  */
 
@@ -49,7 +49,6 @@ function mapProjetoToTimelineItem(projeto) {
  * @param {Array} dados - Os dados a serem exibidos (tarefas ou projetos).
  * @param {object} config - Objeto de configuração.
  * @param {Function} config.itemMapper - Função para mapear os dados para o formato da timeline.
- * @param {Function} config.tooltipRenderer - Função para renderizar o conteúdo do tooltip.
  * @returns {vis.Timeline | null} - A instância da timeline criada.
  */
 export async function criarTimeline(
@@ -67,25 +66,31 @@ export async function criarTimeline(
   }
 
   try {
-    const items = new vis.DataSet(dados.map(config.itemMapper));
+    // ✅ CORREÇÃO: Lógica de mapeamento e criação de grupo/item atualizada.
+    
+    // 1) Mapeia primeiro, porque podemos mexer no .group dentro do mapper
+    const mapped = dados.map(config.itemMapper);
+    
+    // Console para não ficar “no escuro”
+    console.table(mapped.slice(0,5), ['id','group','content']);
+    
+    // 2) Agora sim, cria os grupos a partir do resultado mapeado
     const groups = new vis.DataSet(
-      [...new Set(dados.map((item) => item.group))].map((g) => ({
-        id: g,
-        content: g,
-      }))
+      [...new Set(mapped.map(it => it.group))].map(g => ({ id: g, content: g }))
     );
+
+    console.log('[TIMELINE] grupos gerados:', groups.length, groups);
+
+    // 3) Cria os itens
+    const items = new vis.DataSet(mapped);
 
     const options = {
       stack: true,
       orientation: 'top',
       verticalScroll: true,
+      height: '100vh',
       zoomMin: 1000 * 60 * 60 * 24 * 7, // 1 semana
       zoomMax: 1000 * 60 * 60 * 24 * 365, // 1 ano
-      tooltip: {
-        followMouse: true,
-        overflowMethod: 'flip',
-        template: config.tooltipRenderer,
-      },
     };
 
     const timeline = new vis.Timeline(container, items, groups, options);

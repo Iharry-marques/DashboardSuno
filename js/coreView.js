@@ -48,20 +48,25 @@ function setupEventListeners(config) {
     });
   }
 }
-/////
-/**
- * Carrega e processa os dados.
- */
+
 async function loadData(config) {
     try {
         appState.allData = await carregarDados(appState.settings.jsonUrl);
+        
         appState.processedData = config.dataProcessor ? config.dataProcessor(appState.allData) : appState.allData;
+
+        // ✅ DEBUG RESTAURADO: Checa dados por duplicatas
+        const ids = appState.processedData.map(d => d.id);
+        const dup = ids.filter((id, i) => ids.indexOf(id) !== i);
+        if (dup.length) console.warn('[DEBUG DUPLICADOS]', dup.slice(0,10));
+
+        // ✅ DEBUG RESTAURADO: Verifica dados após o processamento inicial
+        console.log('[DEBUG 2] Dados após processamento:', appState.processedData.length, 'itens', appState.processedData[0]);
 
         if (config.preencherFiltros) {
             config.preencherFiltros(appState.processedData);
         }
 
-        // Configura o callback para o filtro de período APÓS preencher
         if (config.filterConfig.periodoSelectId) {
             configurarFiltroPeriodo(config.filterConfig.periodoSelectId, () => updateView(config));
         }
@@ -81,21 +86,22 @@ async function updateView(config) {
   if (defaultFilters) {
     filtros = { ...filtros, ...defaultFilters };
   }
-
-  appState.filteredData = aplicarFiltros(appState.processedData, filtros);
   
+  appState.filteredData = aplicarFiltros(appState.processedData, filtros);
+
+  // ✅ DEBUG RESTAURADO: Verifica dados após a filtragem
+  console.log('[DEBUG 4] Dados após filtragem:', appState.filteredData.length, 'itens');
+
   if (timelineCreator) {
     const container = getEl('timeline');
     if (container) {
+      // ✅ DEBUG RESTAURADO: Verifica a quantidade de dados enviados para a timeline
+      console.log('[DEBUG 5] Chamando criador da timeline com', appState.filteredData.length, 'itens');
       appState.timeline = await timelineCreator(container, appState.filteredData);
     }
   }
 }
 
-
-/**
- * Exporta os dados filtrados para CSV.
- */
 async function exportData(config) {
   const { exportFormatter } = config;
 

@@ -23,7 +23,9 @@ export async function carregarDados(url = 'dados.json') {
  */
 export function mapearDadosBrutos(dadosBrutos) {
     if (!Array.isArray(dadosBrutos)) return [];
-    return dadosBrutos.map(item => ({
+
+    // 1) Mapeia os dados brutos, adicionando os novos campos
+    const mapeados = dadosBrutos.map(item => ({
         id: item.UniqueTaskID,
         tipo: item.TipoTarefa,
         client: item.ClientNickname,
@@ -31,12 +33,19 @@ export function mapearDadosBrutos(dadosBrutos) {
         content: item.TaskTitle,
         start: item.TaskCreationDate,
         end: item.CurrentDueDate,
-        responsible: item.TaskOwnerDisplayName,
-        group: item.TaskOwnerFunctionGroupName, // A propriedade correta!
-        fullPath: item.TaskOwnerGroupName,
+        responsible: item.TaskOwnerDisplayName,   // quem vai virar a linha
+        area: item.TaskOwnerFunctionGroupName,    // área/função (CRIAÇÃO, MÍDIA…)
+        group: item.TaskOwnerFunctionGroupName,   // mantém para não quebrar filtros antigos
         status: item.PipelineStepTitle,
-        priority: item.JobHealth, // Supondo que JobHealth mapeia para prioridade
+        priority: item.JobHealth,
     }));
+    
+    // 2) Remove ids repetidos (fica só o primeiro)
+    const unicosMap = new Map();
+    for (const t of mapeados) {
+      if (!unicosMap.has(t.id)) unicosMap.set(t.id, t);
+    }
+    return Array.from(unicosMap.values());
 }
 
 

@@ -5,6 +5,7 @@
  */
 
 import { initCoreView } from '../coreView.js';
+import { mapearDadosBrutos } from '../services/dataService.js';
 import { criarTimeline, Mappers } from '../services/timelineService.js';
 import { formatarTarefasParaCSV } from '../services/exportService.js';
 import {
@@ -12,7 +13,7 @@ import {
   preencherSelectGrupos,
 } from '../components/filterComponents.js';
 
-// Função para renderizar o tooltip de TAREFAS
+// Função para renderizar o tooltip de TAREFAS (sem alteração)
 function renderTarefaTooltip(item) {
   if (!item || !item.itemData) return '';
   const tarefa = item.itemData;
@@ -31,6 +32,7 @@ function renderTarefaTooltip(item) {
 
 // Configuração específica para o dashboard de equipes
 const dashboardConfig = {
+  dataProcessor: mapearDadosBrutos,
   defaultFilters: {
     grupo: 'CRIAÇÃO',
   },
@@ -45,10 +47,15 @@ const dashboardConfig = {
     preencherSelectClientes(dados, 'cliente-select');
     preencherSelectGrupos(dados, 'grupo-select');
   },
-  // Passa a função genérica `criarTimeline` com as configurações específicas
+  // ✅ CORREÇÃO: timelineCreator foi atualizado para agrupar pelo responsável.
   timelineCreator: (container, dados) =>
     criarTimeline(container, dados, {
-      itemMapper: Mappers.mapTarefaToTimelineItem,
+      // usamos o mapper padrão…
+      itemMapper: tarefa => {
+        const base = Mappers.mapTarefaToTimelineItem(tarefa);
+        // …mas forçamos a linha (group) a ser o responsável
+        return { ...base, group: tarefa.responsible || 'Sem responsável' };
+      },
       tooltipRenderer: renderTarefaTooltip,
     }),
   exportFormatter: () => ({
