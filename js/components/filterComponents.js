@@ -1,219 +1,117 @@
 /**
  * @file filterComponents.js
- * @description Componentes de filtros reutilizáveis para o Dashboard de Tarefas
- * @project Dashboard de Tarefas - SUNO
+ * @description Componentes de filtros reutilizáveis. Corrigido para lidar com dados ausentes.
  */
 
-import { getEl } from './uiComponents.js';
+import { getEl } from '../helpers/utils.js';
 
 /**
- * Preenche o select de clientes com base nos dados
- * @param {Array} dados - Dados para extrair clientes
- * @param {string} selectId - ID do elemento select (aceita múltiplos IDs separados por vírgula)
+ * Preenche o select de clientes com base nos dados.
  */
-export function preencherSelectClientes(dados, selectId = 'cliente-principal-select') {
-  if (!dados || dados.length === 0) return;
+export function preencherSelectClientes(dados, selectId) {
+  const select = getEl(selectId);
+  if (!select || !dados || dados.length === 0) return;
 
-  // Suporta múltiplos IDs (cliente-select,cliente-principal-select)
-  const ids = selectId.split(',').map(id => id.trim());
-
-  // Lista de clientes a serem excluídos do filtro
-  const clientesExcluidos = [
-    "ENGIE",
-    "EUDORA",
-    "GM",
-    "JOHNSON'S BABY",
-    "O.U.i",
-    "OVVI",
-    "SUPERDIGITAL"
-  ];
-
-  // Extrair clientes únicos e filtrar os excluídos
+  const clientesExcluidos = ["ENGIE", "EUDORA", "GM", "JOHNSON'S BABY", "O.U.i", "OVVI", "SUPERDIGITAL"];
+  
   const clientes = [...new Set(dados.map(item => item.client).filter(Boolean))]
     .filter(cliente => !clientesExcluidos.includes(cliente))
     .sort();
 
-  // Preencher cada select encontrado
-  ids.forEach(id => {
-    const select = getEl(id);
-    if (!select) return;
-
-    // Limpar e adicionar opção "Todos"
-    select.innerHTML = '<option value="todos">Todos</option>';
-
-    // Adicionar clientes
-    clientes.forEach(cliente => {
-      select.add(new Option(cliente, cliente));
-    });
+  select.innerHTML = '<option value="todos">Todos os Clientes</option>';
+  clientes.forEach(cliente => {
+    select.add(new Option(cliente, cliente));
   });
 }
 
 /**
- * Preenche o select de grupos com base nos dados
- * @param {Array} dados - Dados para extrair grupos
- * @param {string} selectId - ID do elemento select (aceita múltiplos IDs separados por vírgula)
+ * Preenche o select de grupos com base nos dados.
  */
-export function preencherSelectGrupos(dados, selectId = 'grupo-select') {
-  if (!dados || dados.length === 0) return;
+export function preencherSelectGrupos(dados, selectId) {
+  const select = getEl(selectId);
+  if (!select || !dados || dados.length === 0) return;
 
-  // Suporta múltiplos IDs (grupo-select,grupo-principal-select)
-  const ids = selectId.split(',').map(id => id.trim());
-
-  // Extrai os grupos únicos diretamente das tarefas, não só dos projetos
-  let grupos = [];
-  if (dados[0] && dados[0].tasks) {
-    // Se for lista de projetos, extrair de todas as tarefas de todos os projetos
+  let grupos;
+  if (dados[0]?.tasks) { // Se for lista de projetos
     const allTarefas = dados.flatMap(proj => proj.tasks || []);
     grupos = [...new Set(allTarefas.map(item => item.TaskOwnerGroup).filter(Boolean))].sort();
-  } else {
+  } else { // Se for lista de tarefas
     grupos = [...new Set(dados.map(item => item.TaskOwnerGroup).filter(Boolean))].sort();
   }
-
-  // Preencher cada select encontrado
-  ids.forEach(id => {
-    const select = getEl(id);
-    if (!select) return;
-
-    // Limpar e adicionar opção "Todos"
-    select.innerHTML = '<option value="todos">Todos</option>';
-
-    // Adicionar grupos que existem nos dados
-    grupos.forEach(grupo => {
-      select.add(new Option(grupo, grupo));
-    });
+  
+  select.innerHTML = '<option value="todos">Todos os Grupos</option>';
+  grupos.forEach(grupo => {
+    select.add(new Option(grupo, grupo));
   });
 }
 
 /**
- * Preenche o select de subgrupos com base no grupo selecionado
- * @param {Array} dados - Dados para extrair subgrupos
- * @param {string} grupoSelecionado - Grupo selecionado
- * @param {string} selectId - ID do elemento select
+ * Preenche o select de subgrupos com base no grupo selecionado.
  */
-export function preencherSelectSubgrupos(dados, grupoSelecionado, selectId = 'subgrupo-select') {
-  const subgrupoSelect = getEl(selectId);
-  if (!subgrupoSelect) return;
-
-  // Limpar e adicionar a opção "Todos"
-  subgrupoSelect.innerHTML = '<option value="todos">Todos</option>';
-
-  // Se "todos" estiver selecionado, não mostrar subgrupos
-  if (grupoSelecionado === "todos") {
-    return;
-  }
-
-  // Filtrar tarefas pelo grupo selecionado
-  const tarefasDoGrupo = dados.filter(
-    (item) => item.TaskOwnerGroup === grupoSelecionado
-  );
-
-  // Coletar todos os caminhos completos únicos para este grupo
-  const caminhos = new Set();
-
-  tarefasDoGrupo.forEach((item) => {
-    if (item.TaskOwnerFullPath) {
-      caminhos.add(item.TaskOwnerFullPath);
-    }
-  });
-
-  // Extrair subgrupos destes caminhos
-  const subgrupos = new Set();
-  const membrosDiretos = new Set();
-
-  caminhos.forEach((caminho) => {
-    // Ignorar o caso "Ana Luisa Andre" que é tratado como membro direto
-    if (caminho === "Ana Luisa Andre") {
-      membrosDiretos.add(caminho);
-      return;
+export function preencherSelectSubgrupos(dados, grupoSelecionado, selectId) {
+    const subgrupoSelect = getEl(selectId);
+    if (!subgrupoSelect || grupoSelecionado === "todos") {
+        if(subgrupoSelect) subgrupoSelect.innerHTML = '<option value="todos">Todos os Subgrupos</option>';
+        return;
     }
 
-    const partes = caminho.split("/").map((p) => p.trim());
+    subgrupoSelect.innerHTML = '<option value="todos">Todos os Subgrupos</option>';
 
-    // Se o caminho começa com o grupo principal
-    if (partes[0] === grupoSelecionado) {
-      // Remover o grupo principal para extrair o subgrupo
-      const subgrupo = partes.slice(1).join(" / ");
-      if (subgrupo) {
-        subgrupos.add(subgrupo);
-      }
-    }
-    // Casos especiais sem prefixo de grupo principal
-    else if (
-      (grupoSelecionado === "Criação" && partes[0] === "Bruno Prosperi") ||
-      (grupoSelecionado === "Operações" && partes[0] === "Carol")
-    ) {
-      // Todo o caminho é considerado subgrupo
-      subgrupos.add(caminho);
-    }
-  });
+    const tarefasDoGrupo = dados.filter(item => item.TaskOwnerGroup === grupoSelecionado);
+    const subgrupos = new Set();
 
-  // Adicionar subgrupos ao select
-  if (subgrupos.size > 0) {
-    // Adicionar cabeçalho de subgrupos
-    const headerOption = document.createElement("option");
-    headerOption.disabled = true;
-    headerOption.textContent = "--- Subgrupos ---";
-    subgrupoSelect.appendChild(headerOption);
-
-    // Ordenar e adicionar subgrupos
-    [...subgrupos].sort().forEach((sub) => {
-      subgrupoSelect.add(new Option(sub, sub));
+    tarefasDoGrupo.forEach(item => {
+        // ✅ A CORREÇÃO ESTÁ AQUI!
+        // Verifica se 'TaskOwnerFullPath' existe antes de usar o .split()
+        if (item.TaskOwnerFullPath && typeof item.TaskOwnerFullPath === 'string') {
+            const partes = item.TaskOwnerFullPath.split('/');
+            if (partes.length > 1) {
+                // Remove o nome do grupo principal para extrair apenas o subgrupo
+                const subgrupo = partes.slice(1).join(' / ').trim();
+                if (subgrupo) {
+                    subgrupos.add(subgrupo);
+                }
+            }
+        }
     });
-  }
-
-  // Adicionar membros diretos (tarefas atribuídas diretamente a membros sem subgrupo)
-  if (membrosDiretos.size > 0) {
-    // Adicionar cabeçalho de membros diretos
-    const headerOption = document.createElement("option");
-    headerOption.disabled = true;
-    headerOption.textContent = "--- Membros Diretos ---";
-    subgrupoSelect.appendChild(headerOption);
-
-    // Ordenar e adicionar membros diretos
-    [...membrosDiretos].sort().forEach((membro) => {
-      subgrupoSelect.add(new Option(membro, membro));
+    
+    // Ordenar e adicionar subgrupos ao select
+    [...subgrupos].sort().forEach(sub => {
+        subgrupoSelect.add(new Option(sub, sub));
     });
-  }
 }
 
 /**
- * Configura os filtros de período
- * @param {string} selectId - ID do elemento select
- * @param {Function} callback - Função a ser chamada quando o filtro mudar
+ * Configura os filtros de período com uma opção "Todo o Período" como padrão.
  */
-export function configurarFiltroPeriodo(selectId = 'periodo-select', callback = null) {
+export function configurarFiltroPeriodo(selectId, callback = null) {
   const periodoSelect = getEl(selectId);
   if (!periodoSelect) return;
 
-  // Limpar e adicionar opções padrão
   periodoSelect.innerHTML = `
-    <option value="30" selected>30 dias</option>
-    <option value="90">90 dias</option>
-    <option value="180">6 meses</option>
-    <option value="365">1 ano</option>
+    <option value="0" selected>Todo o Período</option>
+    <option value="30">Últimos 30 dias</option>
+    <option value="90">Últimos 90 dias</option>
+    <option value="180">Últimos 6 meses</option>
+    <option value="365">Último ano</option>
   `;
 
-  // Adicionar evento de mudança
-  if (callback && typeof callback === 'function') {
+  if (callback) {
     periodoSelect.addEventListener('change', callback);
   }
 }
 
 /**
- * Configura os filtros de tipo de tarefa
- * @param {string} tarefasId - ID do checkbox de tarefas
- * @param {string} subtarefasId - ID do checkbox de subtarefas
- * @param {Function} callback - Função a ser chamada quando o filtro mudar
+ * Configura os filtros de tipo de tarefa.
  */
-export function configurarFiltroTipoTarefa(tarefasId = 'mostrar-tarefas', subtarefasId = 'mostrar-subtarefas', callback = null) {
+export function configurarFiltroTipoTarefa(tarefasId, subtarefasId, callback = null) {
   const tarefasCheckbox = getEl(tarefasId);
-  const subtarefasCheckbox = getEl(subtarefasId);
-
   if (tarefasCheckbox) {
     tarefasCheckbox.checked = true;
     if (callback) tarefasCheckbox.addEventListener('change', callback);
   }
 
+  const subtarefasCheckbox = getEl(subtarefasId);
   if (subtarefasCheckbox) {
     subtarefasCheckbox.checked = true;
     if (callback) subtarefasCheckbox.addEventListener('change', callback);
@@ -221,37 +119,15 @@ export function configurarFiltroTipoTarefa(tarefasId = 'mostrar-tarefas', subtar
 }
 
 /**
- * Obtém os valores atuais dos filtros
- * @param {Object} config - Configuração com IDs dos elementos
- * @returns {Object} Objeto com os valores dos filtros
+ * Obtém os valores atuais dos filtros.
  */
 export function obterValoresFiltros(config = {}) {
-  const clienteSelectId = config.clienteSelectId || 'cliente-principal-select';
-  const grupoSelectId = config.grupoSelectId || 'grupo-select';
-  const subgrupoSelectId = config.subgrupoSelectId || 'subgrupo-select';
-  const periodoSelectId = config.periodoSelectId || 'periodo-select';
-  const mostrarTarefasId = config.mostrarTarefasId || 'mostrar-tarefas';
-  const mostrarSubtarefasId = config.mostrarSubtarefasId || 'mostrar-subtarefas';
+  const cliente = getEl(config.clienteSelectId)?.value || "todos";
+  const grupo = getEl(config.grupoSelectId)?.value || "todos";
+  const subgrupo = getEl(config.subgrupoSelectId)?.value || "todos";
+  const dias = parseInt(getEl(config.periodoSelectId)?.value || "0", 10);
+  const mostrarTarefas = getEl(config.mostrarTarefasId)?.checked !== false;
+  const mostrarSubtarefas = getEl(config.mostrarSubtarefasId)?.checked !== false;
 
-  // Verificar ambos os possíveis IDs para cliente
-  const clienteSelect = getEl(clienteSelectId) || getEl('cliente-select');
-  const cliente = clienteSelect?.value || "todos";
-
-  // Verificar ambos os possíveis IDs para grupo
-  const grupoSelect = getEl(grupoSelectId) || getEl('grupo-principal-select');
-  const grupo = grupoSelect?.value || "todos";
-
-  const subgrupo = getEl(subgrupoSelectId)?.value || "todos";
-  const dias = parseInt(getEl(periodoSelectId)?.value || "30");
-  const mostrarTarefas = getEl(mostrarTarefasId)?.checked !== false;
-  const mostrarSubtarefas = getEl(mostrarSubtarefasId)?.checked !== false;
-
-  return {
-    cliente,
-    grupo,
-    subgrupo,
-    dias,
-    mostrarTarefas,
-    mostrarSubtarefas
-  };
+  return { cliente, grupo, subgrupo, dias, mostrarTarefas, mostrarSubtarefas };
 }

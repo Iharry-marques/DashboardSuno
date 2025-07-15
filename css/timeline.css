@@ -25,185 +25,96 @@
   
   /* Task Type Colors - Modernos */
   --task-texto: linear-gradient(135deg, #10b981, #059669);
-  --task-imagem: linear-gradient(135deg, #f59e0b, #d97706);
-  --task-video: linear-gradient(135deg, #ef4444, #dc2626);
-  --task-ux-writing: linear-gradient(135deg, #8b5cf6, #7c3aed);
-  --task-redes-sociais: linear-gradient(135deg, #06b6d4, #0891b2);
-  --task-default: linear-gradient(135deg, #6b7280, #4b5563);
-  
-  /* Timeline Dimensions */
-  --timeline-item-height: 24px;
-  --timeline-item-padding: 8px 12px;
-  --timeline-group-height: 50px;
-  --timeline-header-height: 60px;
+  --task-video: linear-gradient(135deg, #3b82f6, #2563eb);
+  --task-imagem: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  --task-outro: linear-gradient(135deg, #64748b, #475569);
 }
 
 /* ========================================
-   CONTAINER PRINCIPAL DA TIMELINE
+   ESTRUTURA DA TIMELINE
 ======================================== */
 
-.timeline-container,
-#timeline.timeline-container {
-  /* min-height e height removidos para um layout mais flexível */
-  width: 100% !important;
-  background: var(--timeline-bg);
-  border-radius: var(--radius-lg);
-  /* ALTERADO: overflow hidden para auto para permitir rolagem interna */
-  overflow: auto !important; 
-  display: flex;
-  flex-direction: column;
+.timeline-container {
+  height: calc(100vh - 280px);
+  min-height: 500px;
+  background: var(--timeline-gradient-bg);
   position: relative;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+  transition: var(--transition-base);
 }
 
-.timeline-container::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--timeline-gradient-bg);
+.timeline-container.is-loading {
   opacity: 0.5;
   pointer-events: none;
-  z-index: 0;
 }
-
-/* ========================================
-   VIS.JS TIMELINE MODERNIZAÇÃO
-======================================== */
 
 .vis-timeline {
   border: none !important;
-  font-family: var(--font-family-primary) !important;
   background: transparent !important;
-  height: auto !important; /* Permite que o flexbox controle a altura */
-  display: flex !important;
-  flex-direction: column !important;
-  flex: 1 !important; /* Força a timeline a ocupar o espaço vertical */
-  position: relative;
-  z-index: 1;
 }
 
-/* Container principal */
-.vis-panel.vis-center,
-.vis-panel.vis-top,
-.vis-panel.vis-bottom {
-  background: transparent !important;
+/* ========================================
+   GRUPOS (LABELS DA ESQUERDA)
+======================================== */
+
+.vis-left {
+  background: var(--timeline-group-bg) !important;
+  border-right: 1px solid var(--border-primary) !important;
   backdrop-filter: blur(10px);
 }
 
-.vis-panel.vis-center {
-  flex: 1 !important; /* Força o painel do conteúdo a ocupar o espaço */
-}
-
-.vis-panel.vis-bottom {
-  height: 0 !important; /* Remove a altura do painel inferior */
-  min-height: 0 !important;
-}
-
-
-/* ========================================
-   GRUPOS DA TIMELINE (LABELS LATERAIS)
-======================================== */
-
 .vis-label {
-  background: var(--timeline-glass-bg) !important;
-  backdrop-filter: blur(20px) !important;
-  border-bottom: 1px solid var(--timeline-border) !important;
-  border-right: 1px solid var(--timeline-border) !important;
-  padding: 0 var(--space-4) !important;
-  font-size: var(--font-size-sm) !important;
-  font-weight: var(--font-weight-medium) !important;
-  color: var(--text-primary) !important;
-  transition: all var(--transition-base) !important;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: flex !important;
-  align-items: center !important;
-  position: relative;
-  min-height: var(--timeline-group-height) !important;
-}
-
-.vis-label::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 4px;
-  height: 100%;
-  background: var(--suno-gradient);
-  opacity: 0;
-  transition: opacity var(--transition-base);
+  padding: var(--space-4) !important;
+  border-bottom: 1px solid var(--border-primary) !important;
+  transition: var(--transition-base) !important;
+  cursor: pointer;
 }
 
 .vis-label:hover {
-  background: rgba(255, 200, 1, 0.1) !important;
-  color: var(--text-primary) !important;
-  transform: translateX(2px) !important;
-  box-shadow: var(--shadow-md) !important;
-}
-
-.vis-label:hover::before {
-  opacity: 1;
+  background: var(--timeline-group-hover) !important;
+  color: var(--suno-primary-dark) !important;
 }
 
 /* ========================================
-   EIXO TEMPORAL MODERNO
+   ITENS DA TIMELINE (TAREFAS/PROJETOS)
 ======================================== */
 
-.vis-time-axis {
-  background: var(--timeline-glass-bg) !important;
-  backdrop-filter: blur(20px) !important;
-  border-bottom: 1px solid var(--timeline-border) !important;
+.vis-item {
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--timeline-item-shadow) !important;
+  transition: var(--transition-base) !important;
+  border-width: 2px !important;
+  border-style: solid !important;
+  overflow: hidden;
 }
 
-.vis-time-axis .vis-text {
-  font-size: var(--font-size-xs) !important;
-  color: var(--text-tertiary) !important;
-  font-weight: var(--font-weight-normal) !important;
-  font-family: var(--font-family-primary) !important;
+.vis-item:hover {
+  transform: scale(1.02);
+  box-shadow: var(--shadow-lg) !important;
+  z-index: 100 !important;
 }
 
-.vis-time-axis .vis-text.vis-major {
-  font-weight: var(--font-weight-semibold) !important;
-  color: var(--text-secondary) !important;
-  font-size: var(--font-size-sm) !important;
+.vis-item .vis-item-content {
+  padding: var(--space-2) var(--space-3) !important;
+  font-weight: var(--font-weight-medium);
 }
 
 /* ========================================
-   LINHAS DE GRADE SUTIS
+   GRID DE FUNDO
 ======================================== */
 
-.vis-grid.vis-vertical {
-  border-left: 1px solid var(--timeline-grid-minor) !important;
-  transition: border-color var(--transition-base);
+.vis-panel.vis-center {
+  background: transparent !important;
 }
 
-.vis-grid.vis-minor {
+.vis-time-axis .vis-grid.vis-minor {
   border-color: var(--timeline-grid-minor) !important;
 }
 
-.vis-grid.vis-major {
+.vis-time-axis .vis-grid.vis-major {
   border-color: var(--timeline-grid-major) !important;
-  position: relative;
-}
-
-.vis-grid.vis-major::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -1px;
-  width: 3px;
-  height: 100%;
-  background: linear-gradient(to bottom, transparent, rgba(255, 200, 1, 0.1), transparent);
-  opacity: 0;
-  transition: opacity var(--transition-base);
-}
-
-.vis-timeline:hover .vis-grid.vis-major::before {
-  opacity: 1;
 }
 
 /* ========================================
@@ -211,372 +122,45 @@
 ======================================== */
 
 .vis-current-time {
-  background: var(--suno-primary) !important;
-  width: 3px !important;
-  z-index: 10 !important;
-  box-shadow: 0 0 20px rgba(255, 200, 1, 0.5) !important;
-  position: relative;
+  background-color: var(--suno-primary) !important;
+  width: 2px !important;
 }
 
 .vis-current-time::before {
-  content: 'AGORA';
+  content: "Hoje";
   position: absolute;
-  top: -25px;
+  top: -24px;
   left: 50%;
   transform: translateX(-50%);
-  background: var(--suno-gradient);
-  color: var(--surface-dark);
-  padding: 2px 8px;
-  border-radius: var(--radius-sm);
-  font-size: 10px;
-  font-weight: var(--font-weight-bold);
-  white-space: nowrap;
-  box-shadow: var(--shadow-md);
-  z-index: 11;
-}
-
-.vis-current-time::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 12px;
-  height: 12px;
   background: var(--suno-primary);
-  border-radius: var(--radius-full);
-  box-shadow: 0 0 20px rgba(255, 200, 1, 0.8);
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    transform: translateX(-50%) scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: translateX(-50%) scale(1.3);
-    opacity: 0.7;
-  }
-}
-
-/* ========================================
-   ITENS DA TIMELINE - DESIGN MODERNO
-======================================== */
-
-.vis-item {
-  border-radius: var(--radius-md) !important;
-  border: 1px solid rgba(0, 0, 0, 0.1) !important;
-  font-family: var(--font-family-primary) !important;
-  font-size: var(--font-size-xs) !important;
-  font-weight: var(--font-weight-medium) !important;
-  height: var(--timeline-item-height) !important;
-  min-height: var(--timeline-item-height) !important;
-  cursor: pointer !important;
-  overflow: hidden !important;
-  transition: all var(--transition-base) !important;
-  line-height: calc(var(--timeline-item-height) - 2px) !important;
-  pointer-events: auto !important;
-  position: relative !important;
-  background: #E0E0E0 !important; /* Cor de fundo padrão e neutra */
-  color: #333 !important; /* Cor de texto padrão com bom contraste */
-  box-shadow: var(--shadow-sm) !important;
-}
-
-.vis-item::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left var(--transition-base);
-}
-
-.vis-item:hover::before {
-  left: 100%;
-}
-
-.vis-item:hover {
-  box-shadow: var(--shadow-lg) !important;
-  border-color: rgba(255, 200, 1, 0.3) !important;
-  z-index: 100 !important;
-}
-
-.vis-item.vis-selected {
-  border: 2px solid var(--suno-primary) !important;
-  box-shadow: 0 0 0 3px rgba(255, 200, 1, 0.2), var(--shadow-lg) !important;
-  z-index: 200 !important;
-}
-
-
-/* ========================================
-   CONTEÚDO DOS ITENS
-======================================== */
-
-.vis-item .vis-item-content {
-  padding: var(--timeline-item-padding);
-  font-size: 12px; /* Reduzido de 13px para 12px */
-  font-weight: var(--font-weight-medium);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: block;
-  text-align: left;
-  color: inherit !important;
-}
-
-.vis-item-content b,
-.vis-item-content strong {
-  font-weight: var(--font-weight-semibold) !important;
-  margin-right: var(--space-1);
-}
-
-/* ========================================
-   CORES - SEÇÕES REMOVIDAS
-======================================== */
-
-/* CORES POR PRIORIDADE - REMOVIDO */
-/* CORES POR TIPO DE TAREFA - REMOVIDO */
-/* STATUS - CORES MODERNIZADAS - REMOVIDO */
-/* SUBTAREFAS - ESTILO DIFERENCIADO - REMOVIDO */
-
-/* Estilo padrão para todas as barras, incluindo as que tinham classes de cor */
-.vis-item.task-priority-high,
-.vis-item.priority-high,
-.vis-item.task-priority-medium,
-.vis-item.priority-medium,
-.vis-item.task-priority-low,
-.vis-item.priority-low,
-.vis-item.tipo-texto,
-.vis-item.tipo-imagem,
-.vis-item.tipo-video,
-.vis-item.tipo-ux-writing,
-.vis-item.tipo-redes-sociais,
-.vis-item.tipo-default,
-.vis-item.status-concluido,
-.vis-item.status-atrasado,
-.vis-item.status-andamento,
-.vis-item.subtask {
-  background: #E0E0E0 !important;
-  color: #333 !important;
-  border-color: rgba(0, 0, 0, 0.1) !important;
-  box-shadow: var(--shadow-sm) !important;
-}
-
-/* Efeito de hover para todas as barras */
-.vis-item.task-priority-high:hover,
-.vis-item.priority-high:hover,
-.vis-item.task-priority-medium:hover,
-.vis-item.priority-medium:hover,
-.vis-item.task-priority-low:hover,
-.vis-item.priority-low:hover {
-    border-color: rgba(255, 200, 1, 0.3) !important;
-}
-
-/* Estilo para subtarefas, mantendo a diferenciação visual sem cor */
-.vis-item.subtask {
-  height: 18px !important;
-  min-height: 18px !important;
-  border-radius: var(--radius-sm) !important;
-  opacity: 0.8;
-  border-style: dashed !important;
-  border-width: 1px !important;
-}
-
-.vis-item.subtask .vis-item-content {
-  line-height: 16px !important;
-  font-size: 10px !important;
-  font-style: italic;
-  padding: 0 var(--space-2) !important;
-}
-
-.vis-item.subtask:hover {
-  opacity: 1;
-}
-
-
-/* ========================================
-   INDICADORES ESPECIAIS
-======================================== */
-
-.vis-item.destaque {
-  border: 2px solid var(--suno-primary) !important;
-  box-shadow: var(--shadow-glow) !important;
-  font-weight: var(--font-weight-semibold) !important;
-}
-
-.vis-item.atrasado {
-  position: relative;
-}
-
-.vis-item.atrasado::after {
-  content: '⚠';
-  position: absolute;
-  right: 4px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 10px;
-  opacity: 0.8;
-  color: #c0392b; /* Cor para o ícone de alerta */
-}
-
-.vis-item.curta {
-  min-width: 60px !important;
-}
-
-.vis-item.longa {
-  min-width: 100px !important;
-}
-
-/* ========================================
-   GRUPOS E STACKING
-======================================== */
-
-.vis-group {
-  min-height: var(--timeline-group-height) !important;
-  position: relative;
-}
-
-.vis-item.vis-range {
-  border-radius: var(--radius-md) !important;
-}
-
-.vis-item.vis-stack {
-  margin-top: 2px !important;
-}
-
-/* ========================================
-   SCROLLBARS CUSTOMIZADAS
-======================================== */
-
-.vis-panel.vis-left::-webkit-scrollbar,
-.vis-panel.vis-center::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-.vis-panel.vis-left::-webkit-scrollbar-track,
-.vis-panel.vis-center::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05);
+  color: var(--text-primary);
+  padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-sm);
-}
-
-.vis-panel.vis-left::-webkit-scrollbar-thumb,
-.vis-panel.vis-center::-webkit-scrollbar-thumb {
-  background: var(--text-tertiary);
-  border-radius: var(--radius-sm);
-  transition: background var(--transition-base);
-}
-
-.vis-panel.vis-left::-webkit-scrollbar-thumb:hover,
-.vis-panel.vis-center::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  box-shadow: var(--shadow-md);
 }
 
 /* ========================================
-   ESTADOS DE LOADING E ERRO
+   TOOLTIP CUSTOMIZADO (tippy.js)
 ======================================== */
 
-.timeline-loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  color: var(--text-secondary);
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-medium);
-  background: var(--timeline-gradient-bg);
-  border-radius: var(--radius-lg);
+.tippy-box[data-theme~='suno'] {
+  background: var(--surface-dark-secondary);
+  color: var(--text-white);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  font-family: var(--font-family-base);
+  padding: var(--space-3);
+  backdrop-filter: blur(10px);
 }
 
-.vis-timeline.vis-loading {
-  min-height: 500px;
-  background: var(--timeline-gradient-bg);
-  border-radius: var(--radius-lg);
-  position: relative;
+.tippy-box[data-theme~='suno'] .tippy-content {
+  padding: 0;
 }
 
-.vis-timeline.vis-loading::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 60px;
-  height: 60px;
-  border: 4px solid rgba(255, 200, 1, 0.1);
-  border-top: 4px solid var(--suno-primary);
-  border-radius: var(--radius-full);
-  animation: modernSpin 1s linear infinite;
-}
-
-/* ========================================
-   ANIMATIONS E MICRO-INTERAÇÕES
-======================================== */
-
-@keyframes fadeInTimeline {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideInItem {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.vis-timeline {
-  animation: fadeInTimeline 0.6s ease-out;
-}
-
-.vis-item {
-  animation: slideInItem 0.3s ease-out;
-}
-
-.vis-item:nth-child(even) {
-  animation-delay: 0.1s;
-}
-
-/* ========================================
-   OVERLAY E INTERAÇÕES
-======================================== */
-
-.vis-timeline .vis-overlay {
-  pointer-events: none !important;
-  background: transparent !important;
-}
-
-.vis-timeline .vis-background {
-  pointer-events: none !important;
-}
-
-.vis-timeline .vis-center {
-  pointer-events: auto !important;
-  position: relative !important;
-  z-index: 1 !important;
-}
-
-/* ========================================
-   TOOLTIPS INTEGRATION
-======================================== */
-
-.vis-item[data-tippy-root] {
-  pointer-events: auto !important;
-  box-shadow: 0 4px 24px 0 rgba(20,24,44,0.22) !important; /* sombra mais suave */
-  border-radius: 12px;
+.tippy-box[data-theme~='suno'] .tippy-arrow {
+  color: var(--surface-dark-secondary);
 }
 
 /* ========================================
@@ -584,24 +168,12 @@
 ======================================== */
 
 @media (max-width: 768px) {
-  :root {
-    --timeline-item-height: 28px;
-    --timeline-group-height: 45px;
-  }
-  
-  .vis-item {
-    height: 28px !important;
-    min-height: 28px !important;
+  .vis-label {
+    padding: var(--space-3) !important;
   }
   
   .vis-item .vis-item-content {
-    font-size: 11px !important;
-    line-height: 26px !important;
-    padding: 0 var(--space-2) !important;
-  }
-  
-  .vis-label {
-    font-size: 12px !important;
+    font-size: var(--font-size-sm) !important;
     padding: 0 var(--space-2) !important;
   }
   
@@ -626,54 +198,35 @@
   }
 }
 
-/* ========================================
-   PRINT STYLES
-======================================== */
-
-@media print {
-  .vis-timeline {
-    border: 1px solid #000 !important;
-    background: white !important;
-  }
-  
-  .vis-item {
-    border: 1px solid #000 !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    color: black !important;
-  }
-  
-  .vis-label {
-    background: white !important;
-    color: black !important;
-  }
-  
-  .vis-current-time::before,
-  .vis-current-time::after {
-    display: none !important;
-  }
+/* ✅ ESTILOS DE PRIORIDADE MOVIDOS DE priorityColors.css ✅ */
+.vis-item.task-priority-high,
+.vis-item.project-priority-high {
+  background: var(--priority-high);
+  color: var(--text-white);
+  border-color: var(--priority-high);
 }
 
-/* ========================================
-   FORCE VISIBILITY FIXES
-======================================== */
-
-.vis-timeline,
-.vis-timeline .vis-panel,
-.vis-timeline .vis-item,
-.vis-timeline .vis-group,
-.vis-timeline .vis-label {
-  visibility: visible !important;
-  opacity: 1 !important;
+.vis-item.task-priority-medium,
+.vis-item.project-priority-medium {
+  background: var(--priority-medium);
+  color: var(--text-primary);
+  border-color: var(--priority-medium);
 }
 
-.timeline-loaded .vis-timeline {
-  width: 100% !important;
-  height: 100% !important;
-  min-height: 500px !important;
+.vis-item.task-priority-low,
+.vis-item.project-priority-low {
+  background: var(--priority-low);
+  color: var(--text-white);
+  border-color: var(--priority-low);
 }
 
-.timeline-loaded .vis-center {
-  width: 100% !important;
-  min-height: 450px !important;
+/* Garante que a legenda também use as cores corretas */
+.legend-item .legend-color.priority-high {
+  background-color: var(--priority-high);
+}
+.legend-item .legend-color.priority-medium {
+  background-color: var(--priority-medium);
+}
+.legend-item .legend-color.priority-low {
+  background-color: var(--priority-low);
 }
