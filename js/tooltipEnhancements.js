@@ -1,9 +1,4 @@
-// tooltipEnhancements.js – SUNO Dashboard ✨  v2.4
-// ------------------------------------------------------------------
-// PATCH 2024‑07‑14 ❯❯  • Elimina tooltips duplicados
-//                        • Garante apenas um tooltip visível por vez
-//                        • Mantém trigger somente em clique + botão ×
-// ------------------------------------------------------------------
+
 
 /**************************** HELPERS  *****************************/
 function getProp(obj, ...candidates) {
@@ -17,11 +12,6 @@ function getProp(obj, ...candidates) {
       const rk = lowerKeys[lc];
       if (obj[rk] !== undefined && obj[rk] !== null && obj[rk] !== "") return obj[rk];
     }
-    const fuzzy = Object.keys(lowerKeys).find(k => k.includes(lc));
-    if (fuzzy) {
-      const rk = lowerKeys[fuzzy];
-      if (obj[rk] !== undefined && obj[rk] !== null && obj[rk] !== "") return obj[rk];
-    }
   }
   return "—";
 }
@@ -29,81 +19,69 @@ function getProp(obj, ...candidates) {
 function fmtDate(d) {
   if (!d) return "—";
   const date = d instanceof Date ? d : new Date(d);
-  return date.toLocaleString("pt-BR", { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
+  return date.toLocaleDateString("pt-BR", { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
-/************************ TOOLTIP TEMPLATE  ************************/
-function renderTooltipContent(task) {
-  const cliente     = getProp(task, 'cliente', 'client', 'clientnickname');
-  const responsavel = getProp(task, 'responsavel', 'responsible', 'taskownerdisplayname');
-  const status      = getProp(task, 'status', 'pipelinesteptitle', 'jobstatustitle');
-  const equipe      = getProp(task, 'equipe', 'taskownergroupname', 'taskownerfunctiongroupname');
-  const tipo        = getProp(task, 'tipo', 'tipotarefa');
-
+/************************ TOOLTIP TEMPLATES  ************************/
+// Template para TAREFAS (página Por Equipe)
+function renderTaskTooltip(task) {
   return `
     <div class="tooltip-header">
-      ${getProp(task, 'name', 'tasktitle', 'jobtitle', 'tarefa')}
-      <span class="priority-dot"></span>
+      ${getProp(task, 'name', 'content', 'tasktitle')}
       <button class="tooltip-close" data-close title="Fechar">×</button>
     </div>
     <div class="tooltip-content">
-      <span class="tooltip-icon">👤</span><span><strong>Cliente:</strong> ${cliente}</span>
-      <span class="tooltip-icon">🧑‍💻</span><span><strong>Responsável:</strong> ${responsavel}</span>
-      <span class="tooltip-icon">📅</span><span><strong>Período:</strong> ${fmtDate(task.start || task.taskcreationdate)} → ${fmtDate(task.end || task.currentduedate)}</span>
-      <span class="tooltip-icon">📌</span><span><strong>Status:</strong> ${status}</span>
-      <span class="tooltip-icon">👥</span><span><strong>Equipe:</strong> ${equipe}</span>
-      <span class="tooltip-icon">🏷️</span><span><strong>Tipo:</strong> ${tipo}</span>
+      <span class="tooltip-icon">👤</span><span><strong>Cliente:</strong> ${getProp(task, 'client', 'cliente')}</span>
+      <span class="tooltip-icon">🧑‍💻</span><span><strong>Responsável:</strong> ${getProp(task, 'responsible', 'taskownerdisplayname')}</span>
+      <span class="tooltip-icon">📅</span><span><strong>Período:</strong> ${fmtDate(task.start)} → ${fmtDate(task.end)}</span>
+      <span class="tooltip-icon">📌</span><span><strong>Status:</strong> ${getProp(task, 'status', 'pipelinesteptitle')}</span>
+      <span class="tooltip-icon">👥</span><span><strong>Equipe:</strong> ${getProp(task, 'area', 'taskownerfunctiongroupname')}</span>
+      <span class="tooltip-icon">🏷️</span><span><strong>Tipo:</strong> ${getProp(task, 'tipo', 'tipotarefa')}</span>
+    </div>`;
+}
+
+// NOVO: Template para PROJETOS (página Por Cliente)
+function renderProjectTooltip(project) {
+  const equipes = Array.isArray(project.groups) && project.groups.length > 0
+    ? project.groups.join(', ')
+    : 'N/A';
+
+  return `
+    <div class="tooltip-header">
+      ${getProp(project, 'name', 'projeto')}
+      <button class="tooltip-close" data-close title="Fechar">×</button>
+    </div>
+    <div class="tooltip-content">
+        <span class="tooltip-icon">🏢</span><span><strong>Cliente:</strong> ${getProp(project, 'client', 'cliente')}</span>
+        <span class="tooltip-icon">👥</span><span><strong>Equipes Envolvidas:</strong> ${equipes}</span>
+        <span class="tooltip-icon">📅</span><span><strong>Período Total:</strong> ${fmtDate(project.start)} → ${fmtDate(project.end)}</span>
+        <span class="tooltip-icon">📊</span><span><strong>Qtd. de Tarefas:</strong> ${project.tasks?.length || 0}</span>
     </div>`;
 }
 
 /********************* BIND / REBIND FUNCTION  ********************/
 function bindTooltipsForAllItems() {
-  // LOG 1: Verificando se a função de binding foi chamada
-  console.log('[DEBUG-Tooltip] 1. Tentando amarrar tooltips...');
+  if (!window.timeline?.itemsData) return;
 
-  if (!window.timeline?.itemsData) {
-    // LOG 2: Condição de parada foi atingida
-    console.error('[DEBUG-Tooltip] 2. FALHA: window.timeline ou window.timeline.itemsData não encontrado. Abortando.');
-    return;
-  }
-  
-  console.log('[DEBUG-Tooltip] 2. SUCESSO: window.timeline.itemsData encontrado.', window.timeline.itemsData);
-
-  const container = timeline?.dom?.container || document;
-
-  let rawBars = Array.from(container.querySelectorAll('.vis-item'));
+  const container = timeline.dom.container || document;
+  let rawBars = Array.from(container.querySelectorAll('.vis-item:not(.vis-background)'));
   if (rawBars.length === 0) {
-    console.warn('[DEBUG-Tooltip] Seletor ".vis-item" não encontrou nada. Tentando com ".vis-item-content".');
-    rawBars = Array.from(container.querySelectorAll('.vis-item-content'));
+      rawBars = Array.from(container.querySelectorAll('.vis-item-content'));
   }
 
-  // LOG 3: Verificando se elementos visuais foram encontrados
-  console.log(`[DEBUG-Tooltip] 3. Encontradas ${rawBars.length} barras de tarefa no DOM.`);
+  const bars = Array.from(new Set(rawBars.map(el => el.classList.contains('vis-item') ? el : el.closest('.vis-item'))));
 
-  if (rawBars.length === 0) return; // Se não achou nada, para aqui.
-
-  const bars = Array.from(new Set(rawBars.map(el => el.classList.contains('vis-item') ? el : el.parentElement)));
-
-  bars.forEach((el, index) => {
-    if (el._tippy) return; 
-    
-    // LOG 4: Verificando o ID de uma das barras
-    if (index === 0) {
-        console.log('[DEBUG-Tooltip] 4. Verificando a primeira barra:', el);
-        console.log(`[DEBUG-Tooltip] 4.1. ID da primeira barra (data-id):`, el.dataset.id);
-    }
-    
+  bars.forEach(el => {
+    if (el._tippy || !el.dataset.id) return;
     const visItem = timeline.itemsData.get(el.dataset.id);
-    if (!visItem) {
-      if(index === 0) console.error(`[DEBUG-Tooltip] 5. FALHA: Não foi possível encontrar o item com ID '${el.dataset.id}' no dataset da timeline.`);
-      return;
-    }
-    
-    // LOG 5: Sucesso ao encontrar o item
-    if (index === 0) console.log(`[DEBUG-Tooltip] 5. SUCESSO: Item com ID '${el.dataset.id}' encontrado nos dados:`, visItem);
+    if (!visItem) return;
 
-    const task = visItem.itemData || visItem;
-    const priority = (task.priority || task.Priority || 'medium').toLowerCase();
+    const itemData = visItem.itemData || visItem;
+    const priority = (itemData.priority || 'medium').toLowerCase();
+    
+    // Detecta se o item é um projeto ou uma tarefa e escolhe o template correto
+    const isProject = Array.isArray(itemData.tasks);
+    const content = isProject ? renderProjectTooltip(itemData) : renderTaskTooltip(itemData);
 
     tippy(el, {
       theme: `suno priority-${priority}`,
@@ -113,16 +91,32 @@ function bindTooltipsForAllItems() {
       zIndex: 99999,
       delay: [50, 0],
       trigger: 'click',
-      hideOnClick: true,
       appendTo: document.body,
-      content: renderTooltipContent(task),
+      content: content, // Usa o conteúdo gerado dinamicamente
       onMount(instance) {
-        if(index === 0) console.log('[DEBUG-Tooltip] 6. SUCESSO: Tooltip montado para a primeira barra!');
         const btn = instance.popper.querySelector('[data-close]');
         if (btn) btn.addEventListener('click', () => instance.hide());
       },
     });
   });
+
+  // SINGLETON: apenas um tooltip aberto por vez
+  const instances = bars.map(el => el._tippy).filter(Boolean);
+  if (instances.length > 0) {
+    if (!bindTooltipsForAllItems._singleton) {
+      bindTooltipsForAllItems._singleton = tippy.createSingleton(instances, { 
+          moveTransition: 'transform 0.2s ease',
+          onShow() {
+              document.body.classList.add('tooltip-active');
+          },
+          onHide() {
+              document.body.classList.remove('tooltip-active');
+          }
+       });
+    } else {
+      bindTooltipsForAllItems._singleton.setInstances(instances);
+    }
+  }
 }
 
 /***************************** STYLES  ****************************/
@@ -131,28 +125,22 @@ function injectTooltipStyles() {
   const style = document.createElement('style');
   style.id = 'suno-tooltip-theme';
   style.textContent = `
-  .tippy-box[data-theme~='suno'] { background:#0b1624; color:#f0f3f8; border:1px solid rgba(255,255,255,0.05); border-radius:12px; box-shadow:0 4px 24px rgba(0,0,0,0.4); max-width:640px; font-size:0.95rem; line-height:1.35; padding:0; z-index:99999; }
-  .tippy-box[data-theme~='suno'] .tooltip-header { display:flex; align-items:center; justify-content:space-between; padding:0.75rem 1rem; background:#1a273a; font-weight:600; border-top-left-radius:12px; border-top-right-radius:12px; font-size:1rem; }
-  .tippy-box[data-theme~='suno'] .tooltip-close { all:unset; cursor:pointer; font-size:1.1rem; line-height:1; margin-left:0.75rem; opacity:0.6; }
-  .tippy-box[data-theme~='suno'] .tooltip-close:hover { opacity:1; }
-  .tippy-box[data-placement^='top']>.tippy-arrow::before { border-top-color:#0b1624; }
+  .tippy-box[data-theme~='suno'] { background:#0b1624; color:#f0f3f8; border:1px solid rgba(255,255,255,0.1); border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,0.5); font-size:0.95rem; line-height:1.4; padding:0; z-index:99999; }
+  .tippy-box[data-theme~='suno'] .tooltip-header { display:flex; align-items:center; justify-content:space-between; padding:0.75rem 1.25rem; background:#1a273a; font-weight:600; border-top-left-radius:12px; border-top-right-radius:12px; font-size:1rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .tippy-box[data-theme~='suno'] .tooltip-close { all:unset; cursor:pointer; font-size:1.2rem; line-height:1; margin-left:1rem; opacity:0.6; transition: all 0.2s ease; }
+  .tippy-box[data-theme~='suno'] .tooltip-close:hover { opacity:1; transform: scale(1.1) rotate(90deg); }
+  .tippy-box[data-placement^='top']>.tippy-arrow::before { border-top-color:#1a273a; }
   .tippy-box[data-placement^='bottom']>.tippy-arrow::before { border-bottom-color:#0b1624; }
-  .tippy-box[data-theme~='suno'] .priority-dot { width:12px; height:12px; border-radius:50%; margin-left:0.5rem; }
-  .tippy-box[data-theme~='suno'] .tooltip-content { padding:1rem 1.25rem; display:grid; grid-template-columns:28px 1fr; gap:0.6rem 0.8rem; }
-  .tippy-box[data-theme~='suno'] .tooltip-icon { text-align:center; }
+  .tippy-box[data-theme~='suno'] .tooltip-content { padding:1.25rem; display:grid; grid-template-columns:28px 1fr; gap:0.75rem 1rem; align-items:center; }
+  .tippy-box[data-theme~='suno'] .tooltip-icon { text-align:center; font-size: 1.1rem; opacity: 0.7; }
   `;
   document.head.appendChild(style);
 }
 
 /*************************** BOOTSTRAP  ***************************/
 function waitForTimeline(cb, retries = 100) {
-  // LOG de espera
-  console.log('[DEBUG-Tooltip] Aguardando window.timeline...');
   if (window.timeline?.dom?.container) return cb();
-  if (retries === 0) {
-      console.error('[DEBUG-Tooltip] Tempo de espera esgotado. A timeline não foi encontrada.');
-      return;
-  };
+  if (retries === 0) return;
   setTimeout(() => waitForTimeline(cb, retries - 1), 100);
 }
 
@@ -160,13 +148,8 @@ function initSunoTooltips() {
   injectTooltipStyles();
   const rebinder = () => bindTooltipsForAllItems();
   bindTooltipsForAllItems();
-  if(window.timeline) {
-      console.log("[DEBUG-Tooltip] Amarrando eventos 'changed' e 'draw' na timeline.");
-      timeline.on('changed', rebinder);
-      timeline.on('draw', rebinder);
-  } else {
-      console.error("[DEBUG-Tooltip] Não foi possível amarrar eventos 'changed' e 'draw' porque a timeline não existe.");
-  }
+  timeline?.on?.('changed', rebinder);
+  timeline?.on?.('draw', rebinder);
 }
 
 function loadTippyIfNeeded(cb) {
