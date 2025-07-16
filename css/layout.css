@@ -32,7 +32,7 @@ main#main-content {
   align-items: center;
   height: var(--layout-header-height);
   padding: 0 var(--space-6);
-  background: rgba(226, 188, 110, 0.856);
+  background: rgba(68, 47, 1, 0.459);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border-primary);
   box-shadow: var(--shadow-sm);
