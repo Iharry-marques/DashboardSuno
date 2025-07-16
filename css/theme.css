@@ -32,8 +32,8 @@
   --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 
   /* Text Colors */
-  --text-primary: #9e830d;
-  --text-secondary: #9e830d;
+  --text-primary: #000000;
+  --text-secondary: #523b3b;
   --text-tertiary: #64748b;
   --text-white: #ffffff;
   --text-disabled: #94a3b8;
