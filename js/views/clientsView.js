@@ -5,7 +5,7 @@
  */
 
 import { initCoreView } from '../coreView.js';
-import { processarProjetos } from '../services/dataService.js';
+import { processarProjetos, mapearDadosBrutos } from '../services/dataService.js';
 import { criarTimeline, Mappers } from '../services/timelineService.js';
 import { formatarProjetosParaCSV } from '../services/exportService.js';
 import {
@@ -32,7 +32,7 @@ function renderProjetoTooltip(item) {
 
 // Configuração específica para o dashboard de clientes
 const clientsConfig = {
-  dataProcessor: processarProjetos,
+  dataProcessor: dados => processarProjetos(mapearDadosBrutos(dados)),
   filterConfig: {
     clienteSelectId: 'cliente-select',
     grupoSelectId: 'grupo-select',
