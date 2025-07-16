@@ -17,6 +17,7 @@ import { obterValoresFiltros, configurarFiltroPeriodo, preencherSelectClientes, 
 import { showConfirm, showError, showWarning } from './services/modernNotifications.js';
 import { debounce, getEl, showFeedback } from './helpers/utils.js';
 
+
 const appState = {
   allData: [],
   filteredData: [],
@@ -82,6 +83,7 @@ async function updateView(config) {
   const { filterConfig, timelineCreator, defaultFilters } = config;
 
   let filtros = obterValoresFiltros(filterConfig);
+  console.log('[DEBUG Filtros]', filtros);
 
   if (defaultFilters) {
     filtros = { ...filtros, ...defaultFilters };
