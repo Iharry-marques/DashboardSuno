@@ -1,22 +1,13 @@
 /**
  * @file coreView.js
  * @description Motor de visualização genérico para o Dashboard de Tarefas.
- * Contém logs de depuração para rastrear o fluxo de dados.
  */
-
-// Imports de Serviços e Componentes
 import { aplicarFiltros, carregarDados } from './services/dataService.js';
 import { exportarParaCSV } from './services/exportService.js';
-import {
-  ajustarZoom,
-  configurarEventoTelaCheia,
-  irParaHoje,
-  moverTimeline
-} from './services/timelineService.js';
-import { obterValoresFiltros, configurarFiltroPeriodo, preencherSelectClientes, preencherSelectGrupos } from './components/filterComponents.js';
+import { ajustarZoom, configurarEventoTelaCheia, irParaHoje, moverTimeline } from './services/timelineService.js';
+import { obterValoresFiltros, configurarFiltroPeriodo } from './components/filterComponents.js';
 import { showConfirm, showError, showWarning } from './services/modernNotifications.js';
-import { debounce, getEl, showFeedback } from './helpers/utils.js';
-
+import { debounce, getEl } from './helpers/utils.js';
 
 const appState = {
   allData: [],
@@ -35,52 +26,44 @@ export function initCoreView(config) {
 }
 
 function setupEventListeners(config) {
-  const { filterConfig } = config;
+  const { filterConfig, exportConfig } = config;
   const debouncedUpdate = debounce(() => updateView(config), 300);
 
   if (filterConfig) {
     Object.keys(filterConfig).forEach(key => {
-      const elementId = filterConfig[key];
-      const element = getEl(elementId);
+      const element = getEl(filterConfig[key]);
       if (element) {
-        const eventType = (element.type === 'checkbox' || element.type === 'radio' || element.type === 'select-one') ? 'change' : 'input';
+        const eventType = (element.tagName === 'SELECT' || element.type === 'checkbox') ? 'change' : 'input';
         element.addEventListener(eventType, debouncedUpdate);
       }
     });
+  }
+  if (exportConfig?.elementId) {
+      const exportBtn = getEl(exportConfig.elementId);
+      if(exportBtn) exportBtn.onclick = () => exportData(config);
   }
 }
 
 async function loadData(config) {
     try {
         appState.allData = await carregarDados(appState.settings.jsonUrl);
-        
         appState.processedData = config.dataProcessor ? config.dataProcessor(appState.allData) : appState.allData;
-
-        // ✅ DEBUG RESTAURADO: Checa dados por duplicatas
-        const ids = appState.processedData.map(d => d.id);
-        const dup = ids.filter((id, i) => ids.indexOf(id) !== i);
-        if (dup.length) console.warn('[DEBUG DUPLICADOS]', dup.slice(0,10));
-
-        // ✅ DEBUG RESTAURADO: Verifica dados após o processamento inicial
-        console.log('[DEBUG 2] Dados após processamento:', appState.processedData.length, 'itens', appState.processedData[0]);
-
+        
         if (config.preencherFiltros) {
             config.preencherFiltros(appState.processedData);
         }
-
         if (config.filterConfig.periodoSelectId) {
             configurarFiltroPeriodo(config.filterConfig.periodoSelectId, () => updateView(config));
         }
-
         updateView(config);
     } catch (error) {
-        console.error('Erro ao carregar dados:', error);
+        console.error('Erro fatal ao carregar dados:', error);
         showError('Erro ao Carregar Dados', `${error.message}\n\nVerifique o arquivo de dados.`);
     }
 }
 
-// <<< NOVA FUNÇÃO ADICIONADA AQUI
 function configurarControlesTimeline() {
+  console.log('[Core View] Configurando os controles da timeline...');
   const btnZoomIn = document.getElementById('btn-zoom-in');
   const btnZoomOut = document.getElementById('btn-zoom-out');
   const btnAnterior = document.getElementById('btn-anterior');
@@ -92,57 +75,45 @@ function configurarControlesTimeline() {
   if (btnAnterior) btnAnterior.onclick = () => moverTimeline(window.timeline, -7);
   if (btnProximo) btnProximo.onclick = () => moverTimeline(window.timeline, 7);
   if (btnHoje) btnHoje.onclick = () => irParaHoje(window.timeline);
+
+  console.log('[Core View] Controles configurados.');
 }
 
 async function updateView(config) {
   const { filterConfig, timelineCreator, defaultFilters } = config;
 
   let filtros = obterValoresFiltros(filterConfig);
-  console.log('[DEBUG Filtros]', filtros);
-
-  if (defaultFilters) {
-    filtros = { ...filtros, ...defaultFilters };
-  }
+  if (defaultFilters) filtros = { ...filtros, ...defaultFilters };
   
   appState.filteredData = aplicarFiltros(appState.processedData, filtros);
-
-  // ✅ DEBUG RESTAURADO: Verifica dados após a filtragem
-  console.log('[DEBUG 4] Dados após filtragem:', appState.filteredData.length, 'itens');
+  console.log(`[Core View] Dados filtrados: ${appState.filteredData.length} itens.`);
 
   if (timelineCreator) {
     const container = getEl('timeline');
     if (container) {
-      // ✅ DEBUG RESTAURADO: Verifica a quantidade de dados enviados para a timeline
-      console.log('[DEBUG 5] Chamando criador da timeline com', appState.filteredData.length, 'itens');
+      console.log(`[Core View] Chamando criador da timeline com ${appState.filteredData.length} itens.`);
+      window.timeline = null; // Limpa a instância antiga antes de criar uma nova
       appState.timeline = await timelineCreator(container, appState.filteredData);
-      configurarControlesTimeline(); // <-- ALTERAÇÃO: LINHA ADICIONADA AQUI!
+
+      if (appState.timeline && window.timeline) {
+        console.log('%c[Core View] SUCESSO: Nova instância da timeline foi criada e atribuída a window.timeline.', 'color: green; font-weight: bold;');
+        configurarControlesTimeline();
+        configurarEventoTelaCheia();
+      } else {
+        console.error('%c[Core View] FALHA: A timeline não foi criada ou atribuída a window.timeline.', 'color: red; font-weight: bold;');
+      }
     }
   }
 }
 
 async function exportData(config) {
-  const { exportFormatter } = config;
-
   if (appState.filteredData.length === 0) {
-    showWarning(
-      'Nenhum dado para exportar',
-      'Ajuste os filtros para ver mais itens.'
-    );
+    showWarning('Nenhum dado para exportar', 'Ajuste os filtros para gerar o arquivo.');
     return;
   }
-
-  const confirmed = await showConfirm(
-    'Exportar dados para CSV?',
-    `Será gerado um arquivo com ${appState.filteredData.length} itens.`
-  );
-
-  if (confirmed && exportFormatter) {
-    const { headers, formatarLinha, fileName } = exportFormatter();
-    exportarParaCSV(
-      appState.filteredData,
-      headers,
-      formatarLinha,
-      fileName
-    );
+  const confirmed = await showConfirm('Exportar dados para CSV?', `Será gerado um arquivo com ${appState.filteredData.length} itens.`);
+  if (confirmed && config.exportConfig?.formatter) {
+    const { headers, formatarLinha, fileName } = config.exportConfig.formatter();
+    exportarParaCSV(appState.filteredData, headers, formatarLinha, fileName);
   }
 }

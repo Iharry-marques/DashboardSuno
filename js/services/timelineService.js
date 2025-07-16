@@ -22,7 +22,7 @@ function mapTarefaToTimelineItem(tarefa) {
     className: `task-priority-${tarefa.priority || 'low'} ${
       isSubtask ? 'subtask' : ''
     }`,
-    itemData: tarefa, // Armazena dados originais
+    itemData: tarefa,
   };
 }
 
@@ -39,7 +39,7 @@ function mapProjetoToTimelineItem(projeto) {
     start: projeto.start,
     end: projeto.end,
     className: `project-priority-${projeto.priority || 'medium'}`,
-    itemData: projeto, // Armazena dados originais
+    itemData: projeto,
   };
 }
 
@@ -48,68 +48,54 @@ function mapProjetoToTimelineItem(projeto) {
  * @param {HTMLElement} container - O container onde a timeline será renderizada.
  * @param {Array} dados - Os dados a serem exibidos (tarefas ou projetos).
  * @param {object} config - Objeto de configuração.
- * @param {Function} config.itemMapper - Função para mapear os dados para o formato da timeline.
  * @returns {vis.Timeline | null} - A instância da timeline criada.
  */
-export async function criarTimeline(
-  container,
-  dados,
-  config
-) {
+export async function criarTimeline(container, dados, config) {
   if (!container) return null;
-
-  container.innerHTML = ''; // Limpa o container
-
+  container.innerHTML = '';
   if (!dados || dados.length === 0) {
     container.innerHTML = `<div class="alert alert-info m-3">Nenhum item para exibir. Ajuste os filtros.</div>`;
     return null;
   }
-
   try {
-    // ✅ CORREÇÃO: Lógica de mapeamento e criação de grupo/item atualizada.
-    
-    // 1) Mapeia primeiro, porque podemos mexer no .group dentro do mapper
     const mapped = dados.map(config.itemMapper);
-    
-    // Console para não ficar “no escuro”
-    console.table(mapped.slice(0,5), ['id','group','content']);
-
-    
-    // 2) Agora sim, cria os grupos a partir do resultado mapeado
-    const groups = new vis.DataSet(
-      [...new Set(mapped.map(it => it.group))].map(g => ({ id: g, content: g }))
-    );
-
-    console.log('[TIMELINE] grupos gerados:', groups.length, groups);
-
-    // 3) Cria os itens
+    const groups = new vis.DataSet([...new Set(mapped.map(it => it.group))].map(g => ({ id: g, content: g })));
     const items = new vis.DataSet(mapped);
-
     const options = {
       stack: true,
       orientation: 'top',
       verticalScroll: true,
       height: '100vh',
-      zoomMin: 1000 * 60 * 60 * 24 * 7, // 1 semana
-      zoomMax: 1000 * 60 * 60 * 24 * 365, // 1 ano
+      zoomMin: 1000 * 60 * 60 * 24 * 7,
+      zoomMax: 1000 * 60 * 60 * 24 * 365,
+      tooltip: {
+        template: function() { return ''; }
+      }
     };
-
     const timeline = new vis.Timeline(container, items, groups, options);
-    window.timeline = timeline; // Para depuração e compatibilidade
-
+    console.log('%c[Timeline Service] Timeline criada com sucesso.', 'color: green; font-weight: bold;', timeline);
+    window.timeline = timeline; // Exporta para o escopo global
     return timeline;
   } catch (error) {
-    console.error('Erro ao criar timeline:', error);
+    console.error('[Timeline Service] ERRO CRÍTICO ao criar a timeline:', error);
     container.innerHTML = `<div class="alert alert-danger m-3">Erro ao renderizar timeline: ${error.message}</div>`;
+    window.timeline = null; // Garante que a instância antiga seja limpa
     return null;
   }
 }
 
-/**
- * Funções de controle da Timeline (sem alterações)
- */
+// Função de log para validação de ações nos controles
+function logTimelineAction(actionName, timelineInstance) {
+  if (!timelineInstance || typeof timelineInstance.getWindow !== 'function') {
+    console.error(`[Timeline Control] Ação '${actionName}' falhou. 'window.timeline' é inválido ou não é uma instância da timeline.`, timelineInstance);
+    return false;
+  }
+  console.log(`[Timeline Control] Executando ação: ${actionName}`);
+  return true;
+}
+
 export function moverTimeline(timeline, dias) {
-  if (!timeline) return;
+  if (!logTimelineAction('Mover', timeline)) return;
   const range = timeline.getWindow();
   const newStart = moment(range.start).add(dias, 'days');
   const newEnd = moment(range.end).add(dias, 'days');
@@ -117,13 +103,24 @@ export function moverTimeline(timeline, dias) {
 }
 
 export function irParaHoje(timeline) {
-  if (!timeline) return;
+  if (!logTimelineAction('Ir para Hoje', timeline)) return;
   timeline.moveTo(moment(), { animation: true });
 }
 
+// Função de zoom unificada e robusta
 export function ajustarZoom(timeline, fator) {
-  if (!timeline) return;
-  timeline.zoom(fator);
+  if (!logTimelineAction(`Zoom (fator: ${fator})`, timeline)) return;
+  if (typeof timeline.zoom === 'function') {
+    timeline.zoom(fator);
+  } else {
+    console.warn('[Timeline Control] O método .zoom() não foi encontrado. Usando fallback com .setWindow() para simular o zoom.');
+    const range = timeline.getWindow();
+    const center = (range.end.getTime() + range.start.getTime()) / 2;
+    const newInterval = (range.end.getTime() - range.start.getTime()) * fator;
+    const newStart = new Date(center - newInterval / 2);
+    const newEnd = new Date(center + newInterval / 2);
+    timeline.setWindow(newStart, newEnd, { animation: true });
+  }
 }
 
 export function configurarEventoTelaCheia() {
@@ -132,10 +129,8 @@ export function configurarEventoTelaCheia() {
   if (btn && container) {
     btn.onclick = () => {
       if (!document.fullscreenElement) {
-        container.requestFullscreen().catch((err) => {
-          alert(
-            `Não foi possível entrar em tela cheia: ${err.message} (${err.name})`
-          );
+        container.requestFullscreen().catch(err => {
+          alert(`Não foi possível entrar em tela cheia: ${err.message}`);
         });
       } else {
         document.exitFullscreen();
@@ -144,7 +139,6 @@ export function configurarEventoTelaCheia() {
   }
 }
 
-// Exportando os mapeadores para serem usados nas configurações das views
 export const Mappers = {
   mapTarefaToTimelineItem,
   mapProjetoToTimelineItem,
