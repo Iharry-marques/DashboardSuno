@@ -79,6 +79,21 @@ async function loadData(config) {
     }
 }
 
+// <<< NOVA FUNÇÃO ADICIONADA AQUI
+function configurarControlesTimeline() {
+  const btnZoomIn = document.getElementById('btn-zoom-in');
+  const btnZoomOut = document.getElementById('btn-zoom-out');
+  const btnAnterior = document.getElementById('btn-anterior');
+  const btnProximo = document.getElementById('btn-proximo');
+  const btnHoje = document.getElementById('btn-hoje');
+
+  if (btnZoomIn) btnZoomIn.onclick = () => ajustarZoom(window.timeline, 0.8);
+  if (btnZoomOut) btnZoomOut.onclick = () => ajustarZoom(window.timeline, 1.25);
+  if (btnAnterior) btnAnterior.onclick = () => moverTimeline(window.timeline, -7);
+  if (btnProximo) btnProximo.onclick = () => moverTimeline(window.timeline, 7);
+  if (btnHoje) btnHoje.onclick = () => irParaHoje(window.timeline);
+}
+
 async function updateView(config) {
   const { filterConfig, timelineCreator, defaultFilters } = config;
 
@@ -100,6 +115,7 @@ async function updateView(config) {
       // ✅ DEBUG RESTAURADO: Verifica a quantidade de dados enviados para a timeline
       console.log('[DEBUG 5] Chamando criador da timeline com', appState.filteredData.length, 'itens');
       appState.timeline = await timelineCreator(container, appState.filteredData);
+      configurarControlesTimeline(); // <-- ALTERAÇÃO: LINHA ADICIONADA AQUI!
     }
   }
 }
