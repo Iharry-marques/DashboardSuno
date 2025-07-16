@@ -8,19 +8,19 @@ import { inicializarControleZoomFonte, atualizarAnoRodape } from './helpers/util
 
 // Detectar a página atual e carregar os scripts apropriados
 document.addEventListener("DOMContentLoaded", () => {
+  // ADICIONADO: Define o idioma globalmente para o moment.js
+  moment.locale('pt-br');
+
   const currentPath = window.location.pathname;
-  const pageName = currentPath.split('/').pop();
+  const pageName = currentPath.split('/').pop() || 'index.html';
   
   console.log(`Carregando scripts para: ${pageName}`);
   
-  // Verificar se dados.json está acessível antes de carregar os módulos
   fetch('dados.json')
     .then(response => {
       if (!response.ok) {
         throw new Error(`Erro ao carregar dados.json: ${response.status}`);
       }
-      console.log('dados.json está acessível');
-      
       carregarModuloEspecifico(pageName);
     })
     .catch(error => {
@@ -36,7 +36,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-  // Inicializa controles de zoom e rodapé (comum a todas as páginas)
   inicializarControleZoomFonte(); 
   atualizarAnoRodape();
 });
