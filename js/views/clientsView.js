@@ -1,61 +1,62 @@
-/**
- * @file clientsView.js
- * @description Ponto de entrada para a visualização de dashboard por cliente.
- * @project Dashboard de Tarefas - SUNO
- */
+import { showSuccess, showWarning, showError } from '../modernNotifications.js';
 
-import { initCoreView } from '../coreView.js';
-import { processarProjetos, mapearDadosBrutos } from '../services/dataService.js';
-import { criarTimeline, Mappers } from '../services/timelineService.js';
-import { formatarProjetosParaCSV } from '../services/exportService.js';
-import {
-  preencherSelectClientes,
-  preencherSelectGrupos,
-} from '../components/filterComponents.js';
-
-// Função para renderizar o tooltip de PROJETOS
-function renderProjetoTooltip(item) {
-  if (!item || !item.itemData) return '';
-  const projeto = item.itemData;
-  return `
-    <div class="suno-tooltip">
-      <div class="tooltip-title">${projeto.name}</div>
-      <div class="tooltip-body">
-        <div><strong>Cliente:</strong> ${projeto.client}</div>
-        <div><strong>Status:</strong> ${projeto.status}</div>
-        <div><strong>Progresso:</strong> ${projeto.progress}%</div>
-        <div><strong>Tarefas:</strong> ${projeto.tasks.length}</div>
-      </div>
-    </div>
-  `;
+export function exportarParaCSV(dados, headers, formatarLinha, nomeArquivo = 'dados') {
+  if (!dados || dados.length === 0) {
+    showWarning("Nenhum dado para exportar", "Ajuste os filtros para gerar o arquivo.");
+    return;
+  }
+  try {
+    const linhas = dados.map(formatarLinha);
+    const csvContent = [
+      headers.join(','),
+      ...linhas.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute('download', `${nomeArquivo}_${window.moment().format('YYYY-MM-DD')}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showSuccess("Exportação Concluída", "Seu arquivo CSV foi gerado com sucesso!");
+  } catch (error) {
+    console.error("Erro ao gerar CSV:", error);
+    showError("Erro na Exportação", `Ocorreu um erro inesperado: ${error.message}`);
+  }
 }
 
-// Configuração específica para o dashboard de clientes
-const clientsConfig = {
-  dataProcessor: dados => processarProjetos(mapearDadosBrutos(dados)),
-  filterConfig: {
-    clienteSelectId: 'cliente-select',
-    grupoSelectId: 'grupo-select',
-    periodoSelectId: 'periodo-select',
-  },
-  preencherFiltros: (dados) => {
-    preencherSelectClientes(dados, 'cliente-select');
-    preencherSelectGrupos(dados, 'grupo-select');
-  },
-  // ✅ CORREÇÃO 2: Mapper isolado nesta view para garantir grupo = cliente
-  timelineCreator: (container, dados) =>
-    criarTimeline(container, dados, {
-      itemMapper: projeto => {
-        const base = Mappers.mapProjetoToTimelineItem(projeto);
-        return { ...base, group: projeto.client };   // garante grupo = cliente
-      },
-      tooltipRenderer: renderProjetoTooltip,
-    }),
-  exportFormatter: () => ({
-    ...formatarProjetosParaCSV(),
-    fileName: 'projetos_por_cliente',
-  }),
-};
+function createCsvFormatter(headers, formatarLinha) {
+    return { headers, formatarLinha };
+}
 
-// Inicializa a view
-initCoreView(clientsConfig);
+export function formatarTarefasParaCSV() {
+  const headers = ["Cliente", "Projeto", "Tarefa", "Tipo", "Data Início", "Data Fim", "Responsável", "Grupo", "Prioridade", "Status"];
+  const formatarLinha = (item) => [
+      item.client || "N/A",
+      item.project || "N/A",
+      item.content || "Sem título",
+      item.tipo || "Tarefa",
+      item.start ? window.moment(item.start).format("DD/MM/YYYY") : "N/A",
+      item.end ? window.moment(item.end).format("DD/MM/YYYY") : "N/A",
+      item.responsible || "N/A",
+      item.group || "N/A",
+      item.priority || "N/A",
+      item.status || "N/A",
+    ];
+  return createCsvFormatter(headers, formatarLinha);
+}
+
+export function formatarProjetosParaCSV() {
+  const headers = ["Cliente", "Projeto", "Data Início", "Data Fim", "Equipes", "Status", "Prioridade", "Qtd. Tarefas"];
+  const formatarLinha = (item) => [
+    item.client || "N/A",
+    item.name || "Sem título",
+    item.start ? window.moment(item.start).format("DD/MM/YYYY") : "N/A",
+    item.end ? window.moment(item.end).format("DD/MM/YYYY") : "N/A",
+    item.groups ? [...item.groups].join(", ") : "N/A",
+    item.status || "N/A",
+    item.priority || "N/A",
+    item.tasks ? item.tasks.length : 0,
+  ];
+  return createCsvFormatter(headers, formatarLinha);
+}
