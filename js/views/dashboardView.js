@@ -4,6 +4,7 @@
  * @project Dashboard de Tarefas - SUNO
  */
 
+import moment from 'moment';
 import { initCoreView } from '../coreView.js';
 import { mapearDadosBrutos } from '../services/dataService.js';
 import { criarTimeline, Mappers } from '../services/timelineService.js';
@@ -12,6 +13,10 @@ import {
   preencherSelectClientes,
   preencherSelectGrupos,
 } from '../components/filterComponents.js';
+
+// Constantes para melhorar a legibilidade e manutenção
+const GRUPO_PADRAO_FILTRO = 'CRIAÇÃO';
+const TEXTO_SEM_RESPONSAVEL = 'Sem responsável';
 
 // Função para renderizar o tooltip de TAREFAS (sem alteração)
 function renderTarefaTooltip(item) {
@@ -34,7 +39,7 @@ function renderTarefaTooltip(item) {
 const dashboardConfig = {
   dataProcessor: mapearDadosBrutos,
   defaultFilters: {
-    grupo: 'CRIAÇÃO',
+    grupo: GRUPO_PADRAO_FILTRO,
   },
   filterConfig: {
     clienteSelectId: 'cliente-select',
@@ -54,7 +59,7 @@ const dashboardConfig = {
       itemMapper: tarefa => {
         const base = Mappers.mapTarefaToTimelineItem(tarefa);
         // …mas forçamos a linha (group) a ser o responsável
-        return { ...base, group: tarefa.responsible || 'Sem responsável' };
+        return { ...base, group: tarefa.responsible || TEXTO_SEM_RESPONSAVEL };
       },
       tooltipRenderer: renderTarefaTooltip,
     }),
